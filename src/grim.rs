@@ -1,24 +1,24 @@
-use crate::utils::{decimal_places_scalar, dustify};
+use crate::utils::{decimal_places_scalar, dustify, reround};
 
 pub fn grim_scalar(
     x: &str,
     n: u32,
     _bool_params: Vec<bool>, // includes percent, show_rec, and symmetric
     items: u32,
-    _rounding: &str,
-    _threshold: u16,
+    rounding: Vec<&str>,
+    threshold: f64,
     _tolerance: f64,
 ) {
     let percent: bool = _bool_params[0];
     let _show_rec: bool = _bool_params[1];
-    let _symmetric: bool = _bool_params[2];
+    let symmetric: bool = _bool_params[2];
 
     let mut x_num: f64 = match x.parse() {
         Ok(v) => v,
         Err(_) => return,
     };
 
-    let mut digits = decimal_places_scalar(Some(x), ".").unwrap();
+    let mut digits: i32 = decimal_places_scalar(Some(x), ".").unwrap();
 
     if percent {
         x_num = x_num / 100.0;
@@ -31,6 +31,14 @@ pub fn grim_scalar(
 
     let rec_x_upper = dustify(rec_sum.ceil() / n_items as f64);
     let rec_x_lower = dustify(rec_sum.floor() / n_items as f64);
+
+    let grains_rounded = reround(
+        vec![rec_x_upper, rec_x_lower],
+        digits,
+        rounding,
+        threshold,
+        symmetric,
+    );
 
     // round the grains using reround(), see reround.R
 }

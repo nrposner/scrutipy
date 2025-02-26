@@ -1,4 +1,6 @@
 pub mod grim;
+pub mod rounding;
+pub mod sd_binary;
 pub mod utils;
 
 #[allow(unused_imports)]
