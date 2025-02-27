@@ -214,4 +214,30 @@ mod tests {
     fn decimal_places_test_6() {
         assert_eq!(decimal_places_scalar(Some("Not a Number"), "."), None);
     }
+
+    // testing reconstruct_sd_scalar
+    #[test]
+    fn reconstruct_sd_scalar_test_1() {
+        let sd_rec_scalar = reconstruct_sd_scalar("mean_n", "0.3", 30, 12, 15);
+        assert_eq!(0.4660916, rust_round(sd_rec_scalar.unwrap(), 7)); // rounding to 7th decimal
+                                                                      // place to match R output
+    }
+
+    #[test]
+    fn reconstruct_sd_scalar_test_2() {
+        let sd_rec_scalar = reconstruct_sd_scalar("groups", "0.3", 30, 12, 15);
+        assert_eq!(0.5063697, rust_round(sd_rec_scalar.unwrap(), 7));
+    }
+
+    #[test]
+    fn reconstruct_sd_scalar_test_3() {
+        let sd_rec_scalar = reconstruct_sd_scalar("0_n", "0.3", 30, 12, 15);
+        assert_eq!(0.4982729, rust_round(sd_rec_scalar.unwrap(), 7));
+    }
+
+    #[test]
+    fn reconstruct_sd_scalar_test_4() {
+        let sd_rec_scalar = reconstruct_sd_scalar("1_n", "0.3", 30, 12, 15);
+        assert_eq!(0.5085476, rust_round(sd_rec_scalar.unwrap(), 7));
+    }
 }

@@ -1,6 +1,7 @@
 // now do the sd_binary functions, originally from the sd-binary.R file not utils, but for now we
 // can keep them here, they're short enough
 
+use crate::rounding::rust_round;
 /// Returns the standard deviation of binary value counts
 ///
 /// Parameters:
@@ -24,7 +25,8 @@ pub fn sd_binary_groups(zeros: u32, ones: u32) -> f64 {
     // much point otherwise
     assert!(n > 1.0, "Expecting at least two observations");
 
-    (n - (n - 1.0)).sqrt() * ((zeros * ones) as f64 / n.powi(2))
+    // sqrt((n / (n - 1)) * ((group_0 * group_1) / (n ^ 2)))
+    (n / (n - 1.0) * ((zeros * ones) as f64 / n.powi(2))).sqrt()
 
     //sqrt((n / (n - 1)) * ((group_0 * group_1) / (n ^ 2)))
 }
@@ -53,7 +55,7 @@ pub fn sd_binary_0_n(zeros: u32, n: u32) -> f64 {
     );
     assert!(n > 1, "Expecting at least two observations");
 
-    ((n - (n - 1)) as f64).sqrt() * ((zeros as f64 * ones) / (n as f64).powi(2))
+    ((n as f64 / (n - 1) as f64) * ((zeros as f64 * ones) / (n as f64).powi(2))).sqrt()
 }
 /// Returns the standard deviation of binary variables from the count of one values and the total
 ///
@@ -79,7 +81,8 @@ pub fn sd_binary_1_n(ones: u32, n: u32) -> f64 {
     );
     assert!(n > 1, "Expecting at least two observations");
 
-    ((n - (n - 1)) as f64).sqrt() * ((zeros * ones as f64) / (n as f64).powi(2))
+    //((n / (n - 1)) as f64).sqrt() * ((zeros * ones as f64) / (n as f64).powi(2))
+    ((n as f64 / (n - 1) as f64) * ((zeros * ones as f64) / (n as f64).powi(2))).sqrt()
 }
 /// Returns the standard deviation of binary variables from the mean and the total
 ///
@@ -106,5 +109,20 @@ pub fn sd_binary_mean_n(mean: f64, n: u32) -> f64 {
         mean <= 1.0,
         "The mean of binary observations cannot be greater than 1"
     );
-    ((n - (n - 1)) as f64) * (mean * (1.0 - mean))
+    ((n as f64 / (n - 1) as f64) * (mean * (1.0 - mean))).sqrt()
+}
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+    #[test]
+    pub fn sd_binary_mean_test_1() {
+        let res = sd_binary_mean_n(0.3, 30);
+        assert_eq!(rust_round(res, 7), 0.4660916) // rounding to the 7th decimal place to match R
+                                                  // output
+    }
+
+    #[test]
+    pub fn sd_binary_groups_test_1() {}
 }
