@@ -51,9 +51,14 @@ pub fn reconstruct_sd_scalar(
     };
     let sd_rec: f64 = match formula {
         "mean_n" => sd_binary_mean_n(x_num, n),
+        "mean" => sd_binary_mean_n(x_num, n), // convenient aliases
         "0_n" => sd_binary_0_n(zeros, n),
+        "0" => sd_binary_0_n(zeros, n), // convenient aliases
         "1_n" => sd_binary_1_n(ones, n),
+        "1" => sd_binary_1_n(ones, n), // convenient aliases
         "groups" => sd_binary_groups(zeros, ones),
+        "group" => sd_binary_groups(zeros, ones), // convenient aliases
+
         _ => return Err("incorrect formula"), //set a proper error here
     };
 
