@@ -78,6 +78,11 @@ pub fn check_threshold_specified(threshold: f64) {
 }
 
 /// reconstruct_rounded_numbers fn for reround
+/// notably the R version of this function can take a vector as x or a scalar, we
+/// should probably turn this into taking a vector with at least one element, and that means the
+/// rounding functions also need to be updated to do that
+/// but both this and the vectorized version return doubles, and the same number of them, just in a
+/// different format
 pub fn reconstruct_rounded_numbers_scalar(
     x: f64,
     digits: i32,
@@ -94,7 +99,9 @@ pub fn reconstruct_rounded_numbers_scalar(
             check_threshold_specified(threshold);
             vec![
                 round_up_from(x, digits, threshold, symmetric),
-                round_down_from(x, digits, threshold, symmetric),
+                round_down_from(vec![x], digits, threshold, symmetric)[0], // this is a hacky
+                                                                           // solution to suppress the errors while we're migrating this from scalar to
+                                                                           // vectors
             ]
         }
         "cieling_or_floor" => vec![round_ceiling(x, digits), round_floor(x, digits)],
@@ -108,7 +115,7 @@ pub fn reconstruct_rounded_numbers_scalar(
         }
         "down_from" => {
             check_threshold_specified(threshold);
-            vec![round_down_from(x, digits, threshold, symmetric)]
+            vec![round_down_from(vec![x], digits, threshold, symmetric)[0]]
         }
         "ceiling" => vec![round_ceiling(x, digits)],
         "floor" => vec![round_floor(x, digits)],

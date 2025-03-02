@@ -85,9 +85,21 @@ pub fn round_up_from(x: f64, digits: i32, threshold: f64, symmetric: bool) -> f6
     }
 }
 
-pub fn round_down_from(x: f64, digits: i32, threshold: f64, symmetric: bool) -> f64 {
+pub fn round_down_from(x: Vec<f64>, digits: i32, threshold: f64, symmetric: bool) -> Vec<f64> {
     let p10 = 10.0f64.powi(digits);
     let threshold = threshold - f64::MIN_POSITIVE.powf(0.5);
+
+    // let's make a round_down_from_scalar function that we can .map onto the vector
+    //
+    //
+    x.iter()
+        .map(|i| round_down_from_scalar(*i, p10, threshold, symmetric))
+        .collect()
+}
+
+pub fn round_down_from_scalar(x: f64, p10: f64, threshold: f64, symmetric: bool) -> f64 {
+    //let p10 = 10.0f64.powi(digits);
+    //let threshold = threshold - f64::MIN_POSITIVE.powf(0.5);
 
     if symmetric {
         match x < 0.0 {
@@ -95,6 +107,25 @@ pub fn round_down_from(x: f64, digits: i32, threshold: f64, symmetric: bool) -> 
             false => (x * p10 + (1.0 - (threshold / 10.0))).ceil(),
         }
     } else {
-        (x * p10 + (1.0 - (threshold / 10.0))).ceil()
+        (x * p10 + (1.0 - (threshold / 10.0))).floor() / p10
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    pub fn round_down_from_test_1() {
+        assert_eq!(
+            round_down_from(vec![65.3488492, 645.76543], 4, 5.0, false),
+            vec![65.3488, 645.7654]
+        )
+    }
+
+    #[test]
+    pub fn round_down_from_scalar_test_1() {
+        let p10 = 10.0f64.powi(4);
+        assert_eq!(round_down_from_scalar(65.3488492, p10, 5.0, false), 65.3488)
     }
 }
