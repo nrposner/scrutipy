@@ -76,7 +76,8 @@ pub enum GrimReturn {
 
 /// Performs GRIM test of a single number
 ///
-/// We test whether the basic
+/// We test whether the provided mean is within a plausible rounding of any possible means given
+/// the number of samples
 pub fn grim_scalar_rust(
     x: &str,
     n: u32,
@@ -120,7 +121,7 @@ pub fn grim_scalar_rust(
     // check. Or are we checking whether any single one of these is true??
     let bools: Vec<bool> = flat
         .into_iter()
-        .map(|x| any_is_near(x, x_num, tolerance))
+        .map(|x| is_near(x, x_num, tolerance))
         .collect();
 
     let grain_is_x: bool = bools.iter().any(|&b| b);
@@ -143,23 +144,22 @@ pub fn grim_scalar_rust(
                 //grains_rounded[4].clone(),
                 //grains_rounded[5].clone(),
             ))
-
-            //consistency, rec_sum, rec_x_upper, rec_x_lower,
-            //grains_rounded[1L], grains_rounded[2L],
-            //grains_rounded[5L], grains_rounded[6L]
         } else {
             Ok(GrimReturn::Bool(true))
         }
     }
 }
 
-pub fn any_is_near(grain: f64, x_num: f64, tol: f64) -> bool {
-    (grain - x_num).abs() <= tol
+/// Determine whether the two provided numbers are within a given tolerance of each other
+pub fn is_near(num_1: f64, num_2: f64, tolerance: f64) -> bool {
+    (num_1 - num_2).abs() <= tolerance
 }
 
-pub fn grim_tester(val: Result<GrimReturn, std::num::ParseFloatError>, expected: bool) {
-    match val {
-        Ok(r) => match r {
+/// Automatically unpacks and tests the output of grim_scalar_rust and checks whether its main bool
+/// result matches the expected bool
+pub fn grim_tester(grim_result: Result<GrimReturn, std::num::ParseFloatError>, expected: bool) {
+    match grim_result {
+        Ok(grim_return) => match grim_return {
             GrimReturn::Bool(b) => match expected {
                 true => assert!(b),
                 false => assert!(!b),
@@ -196,10 +196,7 @@ pub mod tests {
             5.0,
             f64::EPSILON.powf(0.5),
         );
-
         grim_tester(val, false)
-
-        //assert!(!val)
     }
 
     #[test]
@@ -213,7 +210,6 @@ pub mod tests {
             5.0,
             f64::EPSILON.powf(0.5),
         );
-
         grim_tester(val, true);
     }
 
@@ -228,7 +224,6 @@ pub mod tests {
             5.0,
             f64::EPSILON.powf(0.5),
         );
-
         grim_tester(val, true);
     }
 
@@ -243,7 +238,6 @@ pub mod tests {
             5.0,
             f64::EPSILON.powf(0.5),
         );
-
         grim_tester(val, false);
     }
 }
