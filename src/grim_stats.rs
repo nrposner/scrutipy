@@ -13,6 +13,8 @@ pub fn grim_probability(x: &str, n: u32, items: u32, percent: bool) -> f64 {
     f64::max((p10 - (n as f64 * items as f64)) / p10, 0.0f64)
 }
 
+/// Find probability that a supplied mean is inconsistent with the reported sample size (allowing
+/// for rare negative results, cf grim_probability())
 pub fn grim_ratio(x: &str, n: u32, items: u32, percent: bool) -> f64 {
     let mut digits: i32 = decimal_places_scalar(Some(x), ".").unwrap();
 
@@ -25,6 +27,7 @@ pub fn grim_ratio(x: &str, n: u32, items: u32, percent: bool) -> f64 {
     (p10 - (n as f64 * items as f64)) / p10
 }
 
+// Find the absolute number of GRIM inconsistencies possible given the mean and sample size
 pub fn grim_total(x: &str, n: u32, items: u32, percent: bool) -> i32 {
     let mut digits: i32 = decimal_places_scalar(Some(x), ".").unwrap();
 
