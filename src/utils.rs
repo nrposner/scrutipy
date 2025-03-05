@@ -146,6 +146,10 @@ pub fn reround(
 
     //this compiles, but does it work???
 
+    // not quite, it seems to not actually be returning quite enough elements, namely we're missing
+    // the 5th and 6th elements
+    // this might be downtream of reconstruct_rounded_numbers_scalar
+
     //reconstruct_rounded_numbers_scalar(x, digits, rounding[0], threshold, symmetric)
 }
 

@@ -1,4 +1,56 @@
 use crate::utils::{decimal_places_scalar, dustify, reround};
+use pyo3::prelude::Bound;
+use pyo3::prelude::*;
+use pyo3::pyfunction;
+use pyo3::wrap_pyfunction;
+
+#[pyfunction(signature = (x, n, rounding, items=1, percent = false, show_rec = false, threshold = 5.0, symmetric = false, tolerance = f64::EPSILON.powf(0.5)))]
+#[allow(clippy::too_many_arguments)]
+#[allow(dead_code)]
+fn grim_scalar_py(
+    x: &str,
+    n: u32,
+    rounding: Vec<String>,
+    items: u32,
+    percent: bool,
+    show_rec: bool,
+    threshold: f64,
+    symmetric: bool,
+    tolerance: f64,
+) -> bool {
+    let rounds: Vec<&str> = rounding.iter().map(|s| &**s).collect(); // idiomatic way to
+                                                                     // turn Vec<String> to Vec<&str>
+    let val = grim_scalar(
+        x,
+        n,
+        vec![percent, show_rec, symmetric],
+        items,
+        rounds,
+        threshold,
+        tolerance,
+    );
+
+    match val {
+        Ok(r) => match r {
+            GrimReturn::Bool(b) => b,
+            #[allow(unused_variables)]
+            GrimReturn::List(a, b, c, d, e, f) => a,
+        },
+        Err(_) => panic!(),
+    }
+
+    //return val;
+}
+
+// change order of arguments to more closely match the R version later once we deal with the issue
+// around optional arguments
+
+//fn matrix_power(
+//    py: Python,
+//    array: PyReadonlyArray2<f64>,
+//    exp: u32,
+//    check_convergence: bool,
+//) -> PyResult<Py<PyArray2<f64>>> {
 
 pub enum GrimReturn {
     Bool(bool),
@@ -118,6 +170,15 @@ pub fn grim_tester(val: Result<GrimReturn, std::num::ParseFloatError>, expected:
         },
         Err(_) => panic!(),
     };
+}
+
+//#[pymodule]
+// for some reason this causes an error when using cargo test --lib
+// commenting out for the moment, let's see if this has any effect on the porting to python
+#[allow(dead_code)]
+fn scrutipy(module: &Bound<'_, PyModule>) -> PyResult<()> {
+    module.add_function(wrap_pyfunction!(grim_scalar_py, module)?)?;
+    Ok(())
 }
 
 #[cfg(test)]

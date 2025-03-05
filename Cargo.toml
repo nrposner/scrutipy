@@ -9,5 +9,6 @@ name = "scrutipy"
 crate-type = ["cdylib"]
 
 [dependencies]
+numpy = "0.23.0"
 pyo3 = "0.23.3"
 regex = "1.11.1"
