@@ -7,7 +7,7 @@ use pyo3::wrap_pyfunction;
 #[pyfunction(signature = (x, n, rounding, items=1, percent = false, show_rec = false, threshold = 5.0, symmetric = false, tolerance = f64::EPSILON.powf(0.5)))]
 #[allow(clippy::too_many_arguments)]
 #[allow(dead_code)]
-fn grim_scalar_py(
+fn grim_scalar(
     x: &str,
     n: u32,
     rounding: Vec<String>,
@@ -20,7 +20,7 @@ fn grim_scalar_py(
 ) -> bool {
     let rounds: Vec<&str> = rounding.iter().map(|s| &**s).collect(); // idiomatic way to
                                                                      // turn Vec<String> to Vec<&str>
-    let val = grim_scalar(
+    let val = grim_scalar_rust(
         x,
         n,
         vec![percent, show_rec, symmetric],
@@ -71,7 +71,7 @@ pub enum GrimReturn {
     //
 }
 
-pub fn grim_scalar(
+pub fn grim_scalar_rust(
     x: &str,
     n: u32,
     bool_params: Vec<bool>, // includes percent, show_rec, and symmetric
@@ -177,7 +177,7 @@ pub fn grim_tester(val: Result<GrimReturn, std::num::ParseFloatError>, expected:
 // commenting out for the moment, let's see if this has any effect on the porting to python
 #[allow(dead_code)]
 fn scrutipy(module: &Bound<'_, PyModule>) -> PyResult<()> {
-    module.add_function(wrap_pyfunction!(grim_scalar_py, module)?)?;
+    module.add_function(wrap_pyfunction!(grim_scalar, module)?)?;
     Ok(())
 }
 
@@ -188,8 +188,8 @@ pub mod tests {
     use super::*;
 
     #[test]
-    pub fn grim_scalar_test_1() {
-        let val = grim_scalar(
+    pub fn grim_scalar_rust_test_1() {
+        let val = grim_scalar_rust(
             "5.19",
             40,
             vec![false, false, false],
@@ -205,8 +205,8 @@ pub mod tests {
     }
 
     #[test]
-    pub fn grim_scalar_test_2() {
-        let val = grim_scalar(
+    pub fn grim_scalar_rust_test_2() {
+        let val = grim_scalar_rust(
             "5.18",
             40,
             vec![false, false, false],
@@ -220,8 +220,8 @@ pub mod tests {
     }
 
     #[test]
-    pub fn grim_scalar_test_3() {
-        let val = grim_scalar(
+    pub fn grim_scalar_rust_test_3() {
+        let val = grim_scalar_rust(
             "5.19",
             40,
             vec![false, false, false],
@@ -235,8 +235,8 @@ pub mod tests {
     }
 
     #[test]
-    pub fn grim_scalar_test_4() {
-        let val = grim_scalar(
+    pub fn grim_scalar_rust_test_4() {
+        let val = grim_scalar_rust(
             "5.19",
             20,
             vec![false, true, false],
