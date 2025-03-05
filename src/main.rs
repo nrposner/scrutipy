@@ -3,6 +3,7 @@ pub mod sd_binary;
 pub mod utils;
 use std::env;
 
+#[allow(unused_imports)]
 use utils::*;
 
 fn main() {

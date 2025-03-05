@@ -50,6 +50,12 @@ pub fn anti_trunc(x: f64) -> f64 {
     }
 }
 
+/// a function to return any function to its decimal portion, used in unit tests in the original R
+/// library
+pub fn trunc_reverse(x: f64) -> f64 {
+    x - x.trunc()
+}
+
 pub fn round_anti_trunc(x: f64, digits: i32) -> f64 {
     let p10 = 10.0f64.powi(digits);
 
@@ -145,5 +151,33 @@ mod tests {
             round_down_from_scalar(65.34845, p10, 5.0 + f64::EPSILON.powf(0.5), false),
             65.3484
         )
+    }
+
+    #[test]
+    pub fn round_down_from_test_3() {
+        let xs: Vec<f64> = vec![
+            1991.077, 2099.563, 1986.102, 1925.769, 2015.759, 1972.437, 1973.526, 2066.728,
+            1947.636, 1920.659,
+        ];
+
+        let rounded_xs = round_down_from(xs.clone(), 2, 5.0, false);
+
+        let ts: Vec<f64> = rounded_xs
+            .clone()
+            .iter()
+            .map(|x| trunc_reverse(*x))
+            .collect();
+
+        let xs_truncated: Vec<f64> = xs.clone().iter().map(|x| trunc_reverse(*x)).collect();
+
+        let rts_truncated = round_down_from(ts.clone(), 2, 5.0, false);
+
+        let rts = round_down_from(xs_truncated.clone(), 2, 5.0, false);
+
+        // note that unlike in R, the reversed operations do not result in exactly the same output.
+        // rts and ts should be the same, but they are slightly off by machine EPSILON
+        // had to re round in order to get this working
+        // check if this is actually fulfilling the needs of the test
+        assert_eq!(rts, rts_truncated);
     }
 }

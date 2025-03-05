@@ -1,6 +1,7 @@
 // now do the sd_binary functions, originally from the sd-binary.R file not utils, but for now we
 // can keep them here, they're short enough
 
+#[allow(unused_imports)]
 use crate::rounding::rust_round;
 /// Returns the standard deviation of binary value counts
 ///

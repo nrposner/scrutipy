@@ -7,7 +7,7 @@ pub fn grim_scalar(
     items: u32,
     rounding: Vec<&str>,
     threshold: f64,
-    _tolerance: f64,
+    tolerance: f64,
 ) {
     let percent: bool = _bool_params[0];
     let _show_rec: bool = _bool_params[1];
@@ -21,7 +21,7 @@ pub fn grim_scalar(
     let mut digits: i32 = decimal_places_scalar(Some(x), ".").unwrap();
 
     if percent {
-        x_num = x_num / 100.0;
+        x_num /= 100.0;
         digits += 2;
     };
 
@@ -40,8 +40,26 @@ pub fn grim_scalar(
         symmetric,
     );
 
-    // round the grains using reround(), see reround.R
+    // not yet confirmed to work
+    // now checking whether the grains are within tolerance of x_num
+    //grain_is_x <- any(dplyr::near(grains_rounded, x_num, tol = tolerance))
+
+    let flat: Vec<f64> = grains_rounded.into_iter().flatten().collect();
+
+    // what's the return type here? is it a vec of bools? Let's run grim with some sample data and
+    // check. Or are we checking whether any single one of these is true??
+    #[allow(unused_variables)]
+    let bools: Vec<bool> = flat
+        .into_iter()
+        .map(|x| any_is_near(x, x_num, tolerance))
+        .collect();
 }
+
+pub fn any_is_near(grain: f64, x_num: f64, tol: f64) -> bool {
+    (grain - x_num).abs() <= tol
+}
+
+// round the grains using reround(), see reround.R
 
 // what is the return type? not a single value, but a list of values, depending on the
 // conditions

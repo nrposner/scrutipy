@@ -151,10 +151,10 @@ pub fn reround(
 
 pub fn reround_bugged(
     x: Vec<Vec<f64>>,
-    digits: i32,
+    _digits: i32,
     rounding: Vec<&str>,
-    threshold: f64,
-    symmetric: bool,
+    _threshold: f64,
+    _symmetric: bool,
 ) {
     if rounding.len() > 1 {
         check_rounding_singular(rounding.clone(), "up_or_down", "up", "down")
