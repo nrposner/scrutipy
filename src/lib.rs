@@ -1,4 +1,5 @@
 pub mod grim;
+pub mod grim_stats;
 pub mod rounding;
 pub mod sd_binary;
 pub mod utils;
