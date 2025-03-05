@@ -1,13 +1,22 @@
 use crate::utils::{decimal_places_scalar, dustify, reround};
 use pyo3::prelude::Bound;
 use pyo3::prelude::*;
-use pyo3::pyfunction;
-use pyo3::wrap_pyfunction;
+use pyo3::{pyfunction, wrap_pyfunction, FromPyObject};
 
+#[derive(FromPyObject)]
+#[allow(dead_code)]
+enum GRIMInput {
+    Str(String),
+    Num(f64), // ideally, this will also capture an input integer and coerce it into and f64.
+              // Make a test case on the Python end to confirm this
+}
+/// reproducing scrutiny's grim_scalar() function, albeit with slightly different order of
+/// arguments, because unlike R, Python requires that all the positional parameters be provided up
+/// front before optional arguments with defaults
 #[pyfunction(signature = (x, n, rounding, items=1, percent = false, show_rec = false, threshold = 5.0, symmetric = false, tolerance = f64::EPSILON.powf(0.5)))]
 #[allow(clippy::too_many_arguments)]
 fn grim_scalar(
-    x: &str,
+    x: GRIMInput,
     n: u32,
     rounding: Vec<String>,
     items: u32,
@@ -17,10 +26,18 @@ fn grim_scalar(
     symmetric: bool,
     tolerance: f64,
 ) -> bool {
+    let x: String = match x {
+        GRIMInput::Str(s) => s,
+        GRIMInput::Num(n) => format!("{}", n),
+    };
+    // accounting for the possibility that we might receive either a String or numeric type,
+    // turning the numeric possibility into a String, which we later turn into a &str to
+    // pass into grim_scalar_rust()
+
     let rounds: Vec<&str> = rounding.iter().map(|s| &**s).collect(); // idiomatic way to
                                                                      // turn Vec<String> to Vec<&str>
     let val = grim_scalar_rust(
-        x,
+        x.as_str(),
         n,
         vec![percent, show_rec, symmetric],
         items,
@@ -36,19 +53,7 @@ fn grim_scalar(
         },
         Err(_) => panic!(),
     }
-
-    //return val;
 }
-
-// change order of arguments to more closely match the R version later once we deal with the issue
-// around optional arguments
-
-//fn matrix_power(
-//    py: Python,
-//    array: PyReadonlyArray2<f64>,
-//    exp: u32,
-//    check_convergence: bool,
-//) -> PyResult<Py<PyArray2<f64>>> {
 
 pub enum GrimReturn {
     Bool(bool),
@@ -69,6 +74,9 @@ pub enum GrimReturn {
     //
 }
 
+/// Performs GRIM test of a single number
+///
+/// We test whether the basic
 pub fn grim_scalar_rust(
     x: &str,
     n: u32,
@@ -106,13 +114,7 @@ pub fn grim_scalar_rust(
         symmetric,
     );
 
-    // not yet confirmed to work
-    // now checking whether the grains are within tolerance of x_num
-    //grain_is_x <- any(dplyr::near(grains_rounded, x_num, tol = tolerance))
-
     let flat: Vec<f64> = grains_rounded.clone().into_iter().flatten().collect();
-
-    // still need to implement show_rec and the other stuff in that final cluster
 
     // what's the return type here? is it a vec of bools? Let's run grim with some sample data and
     // check. Or are we checking whether any single one of these is true??
