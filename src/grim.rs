@@ -4,7 +4,6 @@ use pyo3::prelude::*;
 use pyo3::{pyfunction, wrap_pyfunction, FromPyObject};
 
 #[derive(FromPyObject)]
-#[allow(dead_code)]
 enum GRIMInput {
     Str(String),
     Num(f64), // ideally, this will also capture an input integer and coerce it into and f64.
