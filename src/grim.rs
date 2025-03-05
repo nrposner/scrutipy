@@ -6,7 +6,6 @@ use pyo3::wrap_pyfunction;
 
 #[pyfunction(signature = (x, n, rounding, items=1, percent = false, show_rec = false, threshold = 5.0, symmetric = false, tolerance = f64::EPSILON.powf(0.5)))]
 #[allow(clippy::too_many_arguments)]
-#[allow(dead_code)]
 fn grim_scalar(
     x: &str,
     n: u32,
@@ -33,8 +32,7 @@ fn grim_scalar(
     match val {
         Ok(r) => match r {
             GrimReturn::Bool(b) => b,
-            #[allow(unused_variables)]
-            GrimReturn::List(a, b, c, d, e, f) => a,
+            GrimReturn::List(a, _, _, _, _, _) => a,
         },
         Err(_) => panic!(),
     }
@@ -118,7 +116,6 @@ pub fn grim_scalar_rust(
 
     // what's the return type here? is it a vec of bools? Let's run grim with some sample data and
     // check. Or are we checking whether any single one of these is true??
-    #[allow(unused_variables)]
     let bools: Vec<bool> = flat
         .into_iter()
         .map(|x| any_is_near(x, x_num, tolerance))
@@ -165,8 +162,7 @@ pub fn grim_tester(val: Result<GrimReturn, std::num::ParseFloatError>, expected:
                 true => assert!(b),
                 false => assert!(!b),
             },
-            #[allow(unused_variables)]
-            GrimReturn::List(a, b, c, d, e, f) => assert!(!a),
+            GrimReturn::List(a, _, _, _, _, _) => assert!(!a),
         },
         Err(_) => panic!(),
     };
