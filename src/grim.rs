@@ -1,22 +1,38 @@
 use crate::utils::{decimal_places_scalar, dustify, reround};
 
+pub enum GrimReturn {
+    Bool(bool),
+    List(bool, f64, Vec<f64>, Vec<f64>, Vec<f64>, Vec<f64>),
+    //
+    //
+    //
+    //List(
+    // bool,
+    //f64,
+    //Vec<f64>,
+    //Vec<f64>,
+    //Vec<f64>,
+    //Vec<f64>,
+    //Vec<f64>,
+    //Vec<f64>,
+    //),
+    //
+}
+
 pub fn grim_scalar(
     x: &str,
     n: u32,
-    _bool_params: Vec<bool>, // includes percent, show_rec, and symmetric
+    bool_params: Vec<bool>, // includes percent, show_rec, and symmetric
     items: u32,
     rounding: Vec<&str>,
     threshold: f64,
     tolerance: f64,
-) {
-    let percent: bool = _bool_params[0];
-    let _show_rec: bool = _bool_params[1];
-    let symmetric: bool = _bool_params[2];
+) -> Result<GrimReturn, std::num::ParseFloatError> {
+    let percent: bool = bool_params[0];
+    let show_rec: bool = bool_params[1];
+    let symmetric: bool = bool_params[2];
 
-    let mut x_num: f64 = match x.parse() {
-        Ok(v) => v,
-        Err(_) => return,
-    };
+    let mut x_num: f64 = x.parse()?;
 
     let mut digits: i32 = decimal_places_scalar(Some(x), ".").unwrap();
 
@@ -33,9 +49,9 @@ pub fn grim_scalar(
     let rec_x_lower = dustify(rec_sum.floor() / n_items as f64);
 
     let grains_rounded = reround(
-        vec![rec_x_upper, rec_x_lower],
+        vec![rec_x_upper.clone(), rec_x_lower.clone()],
         digits,
-        rounding,
+        rounding.clone(),
         threshold,
         symmetric,
     );
@@ -44,7 +60,9 @@ pub fn grim_scalar(
     // now checking whether the grains are within tolerance of x_num
     //grain_is_x <- any(dplyr::near(grains_rounded, x_num, tol = tolerance))
 
-    let flat: Vec<f64> = grains_rounded.into_iter().flatten().collect();
+    let flat: Vec<f64> = grains_rounded.clone().into_iter().flatten().collect();
+
+    // still need to implement show_rec and the other stuff in that final cluster
 
     // what's the return type here? is it a vec of bools? Let's run grim with some sample data and
     // check. Or are we checking whether any single one of these is true??
@@ -53,12 +71,123 @@ pub fn grim_scalar(
         .into_iter()
         .map(|x| any_is_near(x, x_num, tolerance))
         .collect();
+
+    let grain_is_x: bool = bools.iter().any(|&b| b);
+
+    if !show_rec {
+        Ok(GrimReturn::Bool(grain_is_x))
+    } else {
+        let consistency: bool = grain_is_x;
+
+        let length_2ers = ["up_or_down", "up_from_or_down_from", "ceiling_or_floor"];
+
+        if rounding.iter().any(|r| length_2ers.contains(r)) {
+            Ok(GrimReturn::List(
+                consistency,
+                rec_sum,
+                rec_x_upper,
+                rec_x_lower,
+                grains_rounded[0].clone(),
+                grains_rounded[1].clone(),
+                //grains_rounded[4].clone(),
+                //grains_rounded[5].clone(),
+            ))
+
+            //consistency, rec_sum, rec_x_upper, rec_x_lower,
+            //grains_rounded[1L], grains_rounded[2L],
+            //grains_rounded[5L], grains_rounded[6L]
+        } else {
+            Ok(GrimReturn::Bool(true))
+        }
+    }
 }
 
 pub fn any_is_near(grain: f64, x_num: f64, tol: f64) -> bool {
     (grain - x_num).abs() <= tol
 }
 
+pub fn grim_tester(val: Result<GrimReturn, std::num::ParseFloatError>, expected: bool) {
+    match val {
+        Ok(r) => match r {
+            GrimReturn::Bool(b) => match expected {
+                true => assert!(b),
+                false => assert!(!b),
+            },
+            #[allow(unused_variables)]
+            GrimReturn::List(a, b, c, d, e, f) => assert!(!a),
+        },
+        Err(_) => panic!(),
+    };
+}
+
+#[cfg(test)]
+pub mod tests {
+    use core::f64;
+
+    use super::*;
+
+    #[test]
+    pub fn grim_scalar_test_1() {
+        let val = grim_scalar(
+            "5.19",
+            40,
+            vec![false, false, false],
+            1,
+            vec!["up_or_down"],
+            5.0,
+            f64::EPSILON.powf(0.5),
+        );
+
+        grim_tester(val, false)
+
+        //assert!(!val)
+    }
+
+    #[test]
+    pub fn grim_scalar_test_2() {
+        let val = grim_scalar(
+            "5.18",
+            40,
+            vec![false, false, false],
+            1,
+            vec!["up_or_down"],
+            5.0,
+            f64::EPSILON.powf(0.5),
+        );
+
+        grim_tester(val, true);
+    }
+
+    #[test]
+    pub fn grim_scalar_test_3() {
+        let val = grim_scalar(
+            "5.19",
+            40,
+            vec![false, false, false],
+            2,
+            vec!["up_or_down"],
+            5.0,
+            f64::EPSILON.powf(0.5),
+        );
+
+        grim_tester(val, true);
+    }
+
+    #[test]
+    pub fn grim_scalar_test_4() {
+        let val = grim_scalar(
+            "5.19",
+            20,
+            vec![false, true, false],
+            1,
+            vec!["up_or_down"],
+            5.0,
+            f64::EPSILON.powf(0.5),
+        );
+
+        grim_tester(val, false);
+    }
+}
 // round the grains using reround(), see reround.R
 
 // what is the return type? not a single value, but a list of values, depending on the
