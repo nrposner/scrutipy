@@ -1,0 +1,194 @@
+---
+title: "Scrutiny tests"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+sd_binary_mean_n <- function(mean, n) {
+  suppressWarnings(sqrt((n / (n - 1)) * (mean * (1 - mean))))
+}
+```
+
+
+```{r}
+mean = 0.3
+n = 30
+
+sqrt((n / (n - 1)) * (mean * (1 - mean)))
+#sd_binary_mean_n(0.3, 30)
+```
+
+```{r}
+sd_binary_groups <- function(group_0, group_1) {
+  n <- group_0 + group_1
+  suppressWarnings(sqrt((n / (n - 1)) * ((group_0 * group_1) / (n ^ 2))))
+}
+
+sd_binary_0_n <- function(group_0, n) {
+  group_1 <- n - group_0
+  suppressWarnings(sqrt((n / (n - 1)) * ((group_0 * group_1) / (n ^ 2))))
+}
+```
+
+```{r}
+sd_binary_0_n(15, 30)
+
+
+```
+
+
+
+
+
+
+
+# reround
+## in preparation for reround, the functions it calls
+
+```{r}
+typeof(reconstruct_rounded_numbers_scalar(c(65.3488492,  64.3488492), 4, "up_or_down", 5, FALSE))
+```
+
+
+```{r}
+typeof(reconstruct_rounded_numbers(c(65.3488492,  64.3488492), 4, "up_or_down", 5, FALSE))
+```
+
+```{r}
+#round_down(c(65.3488492, 645.76543), 4)
+round_up_from(c(65.34845, 645.76543), 4, 5)
+```
+
+
+```{r}
+round_down_from(c(65.34845, 645.76543), 4, 5)
+```
+
+
+```{r}
+runif(10, min = 1900, max = 2100)
+```
+
+
+```{r}
+
+round_up <- function(x, digits = 0L, symmetric = FALSE) {
+  round_up_from(x = x, digits = digits, threshold = 5, symmetric = symmetric)
+}
+
+round_up_from <- function(x, digits = 0L, threshold, symmetric = FALSE) {
+
+  p10 <- 10 ^ digits
+  threshold <- threshold - .Machine$double.eps^0.5
+
+  if (symmetric) {
+    dplyr::if_else(
+      x < 0,
+      - (floor(abs(x) * p10 + (1 - (threshold / 10))) / p10),
+         floor(    x  * p10 + (1 - (threshold / 10))) / p10
+    )
+  } else {
+    floor(x * p10 + (1 - (threshold / 10))) / p10
+  }
+
+}
+
+round_down_from <- function(x, digits = 0L, threshold, symmetric = FALSE) {
+
+  p10 <- 10 ^ digits
+  threshold <- threshold - .Machine$double.eps^0.5
+
+  if (symmetric) {
+    dplyr::if_else(
+      x < 0,
+      - (ceiling(abs(x) * p10 - (1 - (threshold / 10))) / p10),
+         ceiling(    x  * p10 - (1 - (threshold / 10))) / p10
+    )
+  } else {
+    ceiling(x * p10 - (1 - (threshold / 10))) / p10
+  }
+
+}
+
+round_down <- function(x, digits = 0L, symmetric = FALSE) {
+  round_down_from(x = x, digits = digits, threshold = 5, symmetric = symmetric)
+}
+
+# # Full example inputs:
+# x <- 65.3488492
+# digits <- 2
+# rounding <- "up_or_down"
+# threshold <- 5
+# symmetric <- FALSE
+
+reconstruct_rounded_numbers_scalar <- function(x, digits, rounding,
+                                               threshold, symmetric) {
+  switch(
+    rounding,
+    "up_or_down" = c(
+      round_up(x, digits, symmetric),
+      round_down(x, digits, symmetric)
+    ),
+    # Throw error if `rounding` was set to `"up_from_or_down_from"` -- which
+    # requires `threshold` to be set to some number -- but `threshold` was not,
+    # in fact, specified as anything other than its default, `5`:
+    "up_from_or_down_from" = {
+      check_threshold_specified(threshold)
+      c(
+        round_up_from(x, digits, threshold, symmetric),
+        round_down_from(x, digits, threshold, symmetric)
+      )
+    },
+    "ceiling_or_floor" = c(
+      round_ceiling(x, digits),
+      round_floor(x, digits)
+    ),
+    "even" = round(x, digits),
+    "up" = round_up(x, digits, symmetric),
+    "down" = round_down(x, digits, symmetric),
+    # The next two are checked like `"up_from_or_down_from"` above:
+    "up_from" = {
+      check_threshold_specified(threshold)
+      round_up_from(x, digits, threshold, symmetric)
+    },
+    "down_from" = {
+      check_threshold_specified(threshold)
+      round_down_from(x, digits, threshold, symmetric)
+    },
+    "ceiling" = round_ceiling(x, digits),
+    "floor" = round_floor(x, digits),
+    "trunc" = round_trunc(x, digits),
+    "anti_trunc" = round_anti_trunc(x, digits),
+    cli::cli_abort(c(
+      "`rounding` must be one of the designated string values.",
+      "x" = "It was given as {wrong_spec_string(rounding)}.",
+      "i" = "See `vignette(\"rounding-options\")`."
+    ))
+  )
+}
+
+
+
+reconstruct_rounded_numbers <- Vectorize(reconstruct_rounded_numbers_scalar,
+                                         USE.NAMES = FALSE)
+
+
+
+
+
+```
+
+
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
