@@ -25,7 +25,7 @@ struct Record {
     _count: u32,
 }
 
-fn load_csv(path: &str) -> Result<Vec<Record>, Box<dyn Error>> {
+fn _load_csv(path: &str) -> Result<Vec<Record>, Box<dyn Error>> {
     let mut rdr = csv::Reader::from_path(path)?;
     let mut records = Vec::new();
     for result in rdr.deserialize() {
@@ -75,7 +75,7 @@ pub mod tests {
 
     #[test]
     pub fn grim_map_pigs1_test_1() {
-        let records = load_csv("data/pigs1.csv").unwrap();
+        let records = _load_csv("data/pigs1.csv").unwrap();
 
         let xs: Vec<String> = records.iter().map(|rec| rec._mean.clone()).collect();
 
