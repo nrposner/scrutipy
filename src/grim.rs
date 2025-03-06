@@ -73,6 +73,45 @@ pub enum GrimReturn {
     //
 }
 
+// vector wrapper for grim_scalar_rust
+pub fn grim_rust(
+    xs: Vec<&str>,
+    ns: Vec<u32>,
+    bool_params: Vec<bool>,
+    items: Vec<u32>,
+    rounding: Vec<&str>,
+    threshold: f64,
+    tolerance: f64,
+) -> Vec<bool> {
+    //fn grim(xs: &[f64], nums: &[f64], items: &[f64]) -> Vec<f64> {
+    let vals: Vec<Result<GrimReturn, std::num::ParseFloatError>> = xs
+        .iter()
+        .zip(ns.iter())
+        .zip(items.iter())
+        .map(|((x, num), item)| {
+            grim_scalar_rust(
+                x,
+                *num,
+                bool_params.clone(),
+                *item,
+                rounding.clone(),
+                threshold,
+                tolerance,
+            )
+        })
+        .collect();
+
+    vals.iter()
+        .map(|grim_result| match grim_result {
+            Ok(grim_return) => match grim_return {
+                GrimReturn::Bool(b) => *b,
+                GrimReturn::List(a, _, _, _, _, _) => *a,
+            },
+            Err(_) => panic!(),
+        })
+        .collect()
+}
+
 /// Performs GRIM test of a single number
 ///
 /// We test whether the provided mean is within a plausible rounding of any possible means given
@@ -238,6 +277,33 @@ pub mod tests {
             f64::EPSILON.powf(0.5),
         );
         grim_tester(val, false);
+    }
+
+    #[test]
+    pub fn grim_rust_test_1() {
+        let xs = vec![
+            "7.22", "4.74", "5.23", "2.57", "6.77", "2.68", "7.01", "7.38", "3.14", "6.89", "5.00",
+            "0.24",
+        ];
+
+        let ns = vec![32, 25, 29, 24, 27, 28, 29, 26, 27, 31, 25, 28];
+
+        let items = vec![1; 12]; //presumably all 1s?
+
+        let bools = grim_rust(
+            xs,
+            ns,
+            vec![false, false, false],
+            items,
+            vec!["up_or_down"],
+            5.0,
+            f64::EPSILON.powf(0.5),
+        );
+
+        assert_eq!(
+            bools,
+            vec![true, false, false, false, false, true, false, true, false, false, true, false]
+        );
     }
 }
 // round the grains using reround(), see reround.R
