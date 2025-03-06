@@ -115,4 +115,26 @@ pub mod tests {
         let val = grim_total("60.7", 9, 7, false);
         assert_eq!(val, -53)
     }
+
+    #[test]
+    pub fn grim_probability_vector_test_1() {
+        let xs = [
+            "7.22", "4.74", "5.23", "2.57", "6.77", "2.68", "7.01", "7.38", "3.14", "6.89", "5.00",
+            "0.24",
+        ];
+
+        let ns: [u32; 12] = [32, 25, 29, 24, 27, 28, 29, 26, 27, 31, 25, 28];
+
+        let vals: Vec<f64> = xs
+            .iter()
+            .zip(ns.iter())
+            .map(|(x, n)| grim_probability(x, *n, 1, false))
+            .collect();
+
+        assert_eq!(
+            vals,
+            vec![0.68, 0.75, 0.71, 0.76, 0.73, 0.72, 0.71, 0.74, 0.73, 0.69, 0.75, 0.72]
+        )
+        // x, n items=1, percent = false
+    }
 }
