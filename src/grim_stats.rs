@@ -1,5 +1,4 @@
-#[allow(unused_imports)]
-use crate::utils::{decimal_places_scalar, dustify, reround};
+use crate::utils::decimal_places_scalar;
 
 pub fn grim_probability(x: &str, n: u32, items: u32, percent: bool) -> f64 {
     let mut digits: i32 = decimal_places_scalar(Some(x), ".").unwrap();
