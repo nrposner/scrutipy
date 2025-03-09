@@ -126,23 +126,31 @@ pub fn reconstruct_rounded_numbers_scalar(
 }
 
 /// the reround function
+/// redo so that it just takes a vec instead of a vec of vec, the R version can take arbitrarily
+/// nested vectors, but it's the same as just flattening the input into a single vector
 pub fn reround(
-    x: Vec<Vec<f64>>,
+    x: Vec<f64>,
     digits: i32,
     rounding: Vec<&str>,
     threshold: f64,
     symmetric: bool,
-) -> Vec<Vec<f64>> {
+) -> Vec<f64> {
     x.iter()
-        .map(|inner| {
-            inner
-                .iter()
-                .flat_map(|&x| {
-                    reconstruct_rounded_numbers_scalar(x, digits, rounding[0], threshold, symmetric)
-                })
-                .collect()
+        .flat_map(|&x| {
+            reconstruct_rounded_numbers_scalar(x, digits, rounding[0], threshold, symmetric)
         })
         .collect()
+
+    //x.iter()
+    //.map(|inner| {
+    //inner
+    //.iter()
+    //.flat_map(|&x| {
+    //reconstruct_rounded_numbers_scalar(x, digits, rounding[0], threshold, symmetric)
+    //})
+    //.collect()
+    //})
+    //.collect()
 
     //this compiles, but does it work???
 
@@ -153,35 +161,35 @@ pub fn reround(
     //reconstruct_rounded_numbers_scalar(x, digits, rounding[0], threshold, symmetric)
 }
 
-pub fn reround_bugged(
-    x: Vec<Vec<f64>>,
-    _digits: i32,
-    rounding: Vec<&str>,
-    _threshold: f64,
-    _symmetric: bool,
-) {
-    if rounding.len() > 1 {
-        check_rounding_singular(rounding.clone(), "up_or_down", "up", "down")
-            .expect("Error in selecting rounding options");
-        check_rounding_singular(
-            rounding.clone(),
-            "up_from_or_down_from",
-            "up_from",
-            "down_from",
-        )
-        .expect("Error in selecting rounding options");
-        check_rounding_singular(rounding.clone(), "ceiling_or_floor", "ceiling", "floor")
-            .expect("Error in selecting rounding options");
-
-        if (x.len() > 1) && (x.len() != rounding.len()) {
-            let x_len = x.len();
-            let round_len = rounding.len();
-            panic!("x and rounding must have the same length unless one of them have length 1. x has length {x_len} and rounding has length {round_len}")
-        }
-    }
-
-    //return reconstruct_rounded_numbers_scalar(x: f64, digits: i32, rounding[0]: &str, threshold: f64, symmetric: bool);
-}
+//pub fn reround_bugged(
+//x: Vec<Vec<f64>>,
+//_digits: i32,
+//rounding: Vec<&str>,
+//_threshold: f64,
+//_symmetric: bool,
+//) {
+//if rounding.len() > 1 {
+//check_rounding_singular(rounding.clone(), "up_or_down", "up", "down")
+//.expect("Error in selecting rounding options");
+//check_rounding_singular(
+//rounding.clone(),
+//"up_from_or_down_from",
+//"up_from",
+//"down_from",
+//)
+//.expect("Error in selecting rounding options");
+//check_rounding_singular(rounding.clone(), "ceiling_or_floor", "ceiling", "floor")
+//.expect("Error in selecting rounding options");
+//
+//if (x.len() > 1) && (x.len() != rounding.len()) {
+//let x_len = x.len();
+//let round_len = rounding.len();
+//////////panic!("x and rounding must have the same length unless one of them have length 1. x has length {x_len} and rounding has length {round_len}")
+//}
+//}
+//
+//return reconstruct_rounded_numbers_scalar(x: f64, digits: i32, rounding[0]: &str, threshold: f64, symmetric: bool);
+//}
 
 /// check rounding singular, necessary for the reround function
 pub fn check_rounding_singular(
@@ -255,5 +263,11 @@ mod tests {
     fn reconstruct_sd_scalar_test_4() {
         let sd_rec_scalar = reconstruct_sd_scalar("1_n", "0.3", 30, 12, 15);
         assert_eq!(0.5085476, rust_round(sd_rec_scalar.unwrap(), 7));
+    }
+
+    #[test]
+    fn reconstruct_rounded_numbers_scalar_test_1() {
+        let res = reconstruct_rounded_numbers_scalar(2.9876, 3, "up_or_down", 5.0, false);
+        assert_eq!(res, vec![2.988, 2.988])
     }
 }

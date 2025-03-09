@@ -56,7 +56,7 @@ fn grim_scalar(
 
 pub enum GrimReturn {
     Bool(bool),
-    List(bool, f64, Vec<f64>, Vec<f64>, Vec<f64>, Vec<f64>),
+    List(bool, f64, Vec<f64>, Vec<f64>, f64, f64),
     //
     //
     //
@@ -145,19 +145,21 @@ pub fn grim_scalar_rust(
     let rec_x_upper = dustify(rec_sum.ceil() / n_items as f64);
     let rec_x_lower = dustify(rec_sum.floor() / n_items as f64);
 
-    let grains_rounded = reround(
-        vec![rec_x_upper.clone(), rec_x_lower.clone()],
-        digits,
-        rounding.clone(),
-        threshold,
-        symmetric,
-    );
+    let conc: Vec<f64> = rec_x_upper
+        .iter()
+        .cloned()
+        .chain(rec_x_lower.iter().cloned())
+        .collect();
+    //note that this modifies in place, so we just use rec_x_upper as the input to grains_rounded
 
-    let flat: Vec<f64> = grains_rounded.clone().into_iter().flatten().collect();
+    let grains_rounded = reround(conc, digits, rounding.clone(), threshold, symmetric);
+
+    // let flat: Vec<f64> = grains_rounded.clone().into_iter().flatten().collect();
 
     // what's the return type here? is it a vec of bools? Let's run grim with some sample data and
     // check. Or are we checking whether any single one of these is true??
-    let bools: Vec<bool> = flat
+    let bools: Vec<bool> = grains_rounded
+        .clone()
         .into_iter()
         .map(|x| is_near(x, x_num, tolerance))
         .collect();
@@ -177,8 +179,8 @@ pub fn grim_scalar_rust(
                 rec_sum,
                 rec_x_upper,
                 rec_x_lower,
-                grains_rounded[0].clone(),
-                grains_rounded[1].clone(),
+                grains_rounded[0],
+                grains_rounded[1],
                 //grains_rounded[4].clone(),
                 //grains_rounded[5].clone(),
             ))

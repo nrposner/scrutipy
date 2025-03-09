@@ -101,13 +101,7 @@ pub fn grimmer_scalar(
     // double check that this works as expected
     // instead of generated var_predicted, we go directly to sd_predictably
 
-    let sd_rec_rounded = reround(
-        vec![sd_predicted],
-        digits_sd,
-        rounding,
-        threshold,
-        symmetric,
-    );
+    let sd_rec_rounded = reround(sd_predicted, digits_sd, rounding, threshold, symmetric);
 
     // again, double check on reround, give it some robust testing
 
@@ -117,7 +111,7 @@ pub fn grimmer_scalar(
     //let interim: Vec<f64> = sd_rec_rounded.into_iter().flatten().collect();
     //let sd_rec_rounded: Vec<Vec<f64>> = interim.iter().map(|x| dustify(*x)).collect();
 
-    let sd_rec_rounded: Vec<Vec<f64>> = sd_rec_rounded.into_iter().flatten().map(dustify).collect();
+    let sd_rec_rounded: Vec<Vec<f64>> = sd_rec_rounded.into_iter().map(dustify).collect();
 
     // make absolutely double check that this is returning the expected result
     //
