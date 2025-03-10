@@ -5,9 +5,34 @@ use crate::grim::{grim_scalar_rust, is_near, GrimReturn};
 use crate::rounding::rust_round;
 use crate::utils::{dustify, reround};
 
+const EPS: f64 = f64::EPSILON;
+
 // bool params in this case takes show_reason, default false, and symmetric, default false
 // no getting around it, the original contains lots of arguments, even if we condense the bools
 // into a vec, we still have 8
+
+/// Determines whether a standard deviation is possible from the listed mean and sample size
+///
+/// Implements L. Jung's adaptation of A. Allard's A-GRIMMER algorithm for testing the possibility
+/// of standard deviations. (https://aurelienallard.netlify.app/post/anaytic-grimmer-possibility-standard-deviations/).
+///
+/// # Arguments
+///     x: the sample mean
+///     sd: sample standard deviation
+///     n: sample size
+///     items: number of items
+///     bool_params: booleans for options in GRIMMER and the underlying GRIM function, in the form
+///     [percent, show_reason, symmetric]
+///     rounding: method of rounding
+///     threshold: rounding threshold, ordinarily 5.0
+///     tolerance: rounding tolerance usually the square root of machine epsilon
+///
+/// # Panics
+///     - If x or sd are given as numbers instead of strings. This is necessary in order to
+///     preserve trailing 0s
+///     - If items is not 1. Items > 1 may be implemented in a later update
+///
+/// # Returns
 #[allow(clippy::too_many_arguments)]
 pub fn grimmer_scalar(
     x: &str,
@@ -21,8 +46,8 @@ pub fn grimmer_scalar(
 ) -> bool {
     // in the original, items does not work as intended, message Jung about this once I have more
     // time
-    if items > 1 {
-        panic!()
+    if items != 1 {
+        unimplemented!()
     };
 
     let digits_sd = decimal_places_scalar(Some(sd), ".").unwrap();
@@ -59,7 +84,7 @@ pub fn grimmer_scalar(
 
     if !pass_grim {
         if show_rec {
-            panic!("code this arm already jackass")
+            println!("{} is GRIM inconsistent", x)
         };
         return false;
     };
@@ -102,29 +127,16 @@ pub fn grimmer_scalar(
         })
         .collect();
 
-    // double check that this works as expected
-    // instead of generated var_predicted, we go directly to sd_predictably
-
     let sd_rec_rounded = reround(sd_predicted, digits_sd, rounding, threshold, symmetric);
-
-    // again, double check on reround, give it some robust testing
 
     let sd = dustify(sd);
 
-    // the line below is doing the same in one line as the two lines below
-    //let interim: Vec<f64> = sd_rec_rounded.into_iter().flatten().collect();
-    //let sd_rec_rounded: Vec<Vec<f64>> = interim.iter().map(|x| dustify(*x)).collect();
-
     let sd_rec_rounded: Vec<f64> = sd_rec_rounded.into_iter().flat_map(dustify).collect();
-
-    // checking whether the elements of sd are within a tolerance of their equivalent in
-    // sd_rec_rounded
-    // also assuming we should be flattening the latter
 
     let matches_sd: Vec<bool> = sd
         .iter()
         .zip(sd_rec_rounded.iter())
-        .map(|(i, sdr)| is_near(*i, *sdr, f64::EPSILON.powf(0.5)))
+        .map(|(i, sdr)| is_near(*i, *sdr, EPS.powf(0.5)))
         .collect();
 
     let pass_test2: bool = matches_sd.iter().any(|&b| b);
@@ -134,7 +146,6 @@ pub fn grimmer_scalar(
             println!("Failed test 2");
             return false;
         };
-
         return false;
     }
 
@@ -144,8 +155,6 @@ pub fn grimmer_scalar(
         .iter()
         .map(|&n| n as f64 % 2.0 == sum_parity)
         .collect();
-
-    //let matches_parity = sum_real % 2.0 == (integers_possible % 2);
 
     let matches_sd_and_parity: Vec<bool> = matches_sd
         .iter()
@@ -169,12 +178,6 @@ pub fn grimmer_scalar(
     } else {
         true
     }
-
-    // make absolutely double check that this is returning the expected result
-    //
-    //
-
-    // likely not how it's meant to work, but I'm going to flatten
 }
 
 #[cfg(test)]
@@ -191,9 +194,8 @@ pub mod test {
             vec![false, true, false],
             vec!["up_or_down"],
             5.0,
-            f64::EPSILON.powf(0.5),
+            EPS.powf(0.5),
         );
-
         assert!(!val)
     }
 
@@ -207,9 +209,8 @@ pub mod test {
             vec![false, true, false],
             vec!["up_or_down"],
             5.0,
-            f64::EPSILON.powf(0.5),
+            EPS.powf(0.5),
         );
-
         assert!(val)
     }
 
@@ -223,9 +224,54 @@ pub mod test {
             vec![false, true, false],
             vec!["up_or_down"],
             5.0,
-            f64::EPSILON.powf(0.5),
+            EPS.powf(0.5),
         );
-
         assert!(val)
+    }
+
+    #[test]
+    #[should_panic]
+    fn grimmer_test_4() {
+        let _ = grimmer_scalar(
+            "2.57",
+            "2.57",
+            30,
+            2, // in current version, item > 1 is not covered, should return an
+            // unimplemented! panic error
+            vec![false, true, false],
+            vec!["up_or_down"],
+            5.0,
+            EPS.powf(0.5),
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn grimmer_test_5() {
+        let _ = grimmer_scalar(
+            "",
+            "2.57",
+            30,
+            1,
+            vec![false, true, false],
+            vec!["up_or_down"],
+            5.0,
+            EPS.powf(0.5),
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    fn grimmer_test_6() {
+        let _ = grimmer_scalar(
+            "2.57",
+            "",
+            30,
+            1,
+            vec![false, true, false],
+            vec!["up_or_down"],
+            5.0,
+            EPS.powf(0.5),
+        );
     }
 }
