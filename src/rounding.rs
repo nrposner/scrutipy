@@ -109,8 +109,8 @@ pub fn round_down_from_scalar(x: f64, p10: f64, threshold: f64, symmetric: bool)
 
     if symmetric {
         match x < 0.0 {
-            true => -(x.abs() * p10 + (1.0 - (threshold / 10.0))).ceil(), // - (floor(abs(x) * p10 + (1 - (threshold / 10))) / p10)
-            false => (x * p10 + (1.0 - (threshold / 10.0))).ceil(),
+            true => -(x.abs() * p10 + (1.0 - (threshold / 10.0))).floor() / p10, // - (floor(abs(x) * p10 + (1 - (threshold / 10))) / p10)
+            false => (x * p10 + (1.0 - (threshold / 10.0))).floor() / p10,
         }
     } else {
         (x * p10 + (1.0 - (threshold / 10.0))).floor() / p10
@@ -138,6 +138,23 @@ mod tests {
             vec![65.3484, 645.7654]
         )
     }
+
+    #[test]
+    pub fn round_down_from_test_4() {
+        assert_eq!(
+            round_down_from(vec![65.3488492, 645.76543], 4, 5.0, true),
+            vec![65.3488, 645.7654]
+        )
+    }
+
+    #[test]
+    pub fn round_down_from_test_5() {
+        assert_eq!(
+            round_down_from(vec![65.34845, 645.76543], 4, 5.0, true),
+            vec![65.3484, 645.7654]
+        )
+    }
+
     #[test]
     pub fn round_down_from_scalar_test_1() {
         let p10 = 10.0f64.powi(4);
