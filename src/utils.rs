@@ -98,7 +98,7 @@ pub fn reconstruct_rounded_numbers_scalar(
         "up_or_down_from" => {
             check_threshold_specified(threshold);
             vec![
-                round_up_from(x, digits, threshold, symmetric),
+                round_up_from(vec![x], digits, threshold, symmetric)[0],
                 round_down_from(vec![x], digits, threshold, symmetric)[0], // this is a hacky
                                                                            // solution to suppress the errors while we're migrating this from scalar to
                                                                            // vectors
@@ -111,7 +111,7 @@ pub fn reconstruct_rounded_numbers_scalar(
         "down" => vec![round_down(x, digits)], // supposed to have a symmetric keyword, but round down definition doesn't have it ???
         "up_from" => {
             check_threshold_specified(threshold);
-            vec![round_up_from(x, digits, threshold, symmetric)]
+            round_up_from(vec![x], digits, threshold, symmetric)
         }
         "down_from" => {
             check_threshold_specified(threshold);

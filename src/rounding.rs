@@ -77,17 +77,23 @@ pub fn round_floor(x: f64, digits: i32) -> f64 {
 // we can pass multiple arguments to rounding, and that x can also be a vector????
 // But the example values for the above function look exclusively scalars
 
-pub fn round_up_from(x: f64, digits: i32, threshold: f64, symmetric: bool) -> f64 {
+pub fn round_up_from(x: Vec<f64>, digits: i32, threshold: f64, symmetric: bool) -> Vec<f64> {
     let p10 = 10.0f64.powi(digits);
     let threshold = threshold - f64::MIN_POSITIVE.powf(0.5);
 
+    x.iter()
+        .map(|i| round_up_from_scalar(*i, p10, threshold, symmetric))
+        .collect()
+}
+
+pub fn round_up_from_scalar(x: f64, p10: f64, threshold: f64, symmetric: bool) -> f64 {
     if symmetric {
         match x < 0.0 {
-            true => -(x.abs() * p10 + (1.0 - (threshold / 10.0))).floor(), // - (floor(abs(x) * p10 + (1 - (threshold / 10))) / p10)
-            false => (x * p10 + (1.0 - (threshold / 10.0))).floor(),
+            true => -(x.abs() * p10 + (1.0 - (threshold / 10.0))).floor() / p10, // - (floor(abs(x) * p10 + (1 - (threshold / 10))) / p10)
+            false => (x * p10 + (1.0 - (threshold / 10.0))).floor() / p10,
         }
     } else {
-        (x * p10 + (1.0 - (threshold / 10.0))).floor()
+        (x * p10 + (1.0 - (threshold / 10.0))).floor() / p10
     }
 }
 
