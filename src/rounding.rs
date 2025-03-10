@@ -180,4 +180,11 @@ mod tests {
         // check if this is actually fulfilling the needs of the test
         assert_eq!(rts, rts_truncated);
     }
+
+    #[test]
+    fn rust_round_test_1() {
+        let val = rust_round(98.7823987, 4);
+
+        assert_eq!(98.7824, val)
+    }
 }
