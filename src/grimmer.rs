@@ -105,13 +105,13 @@ pub fn grimmer_scalar(
 
     // again, double check on reround, give it some robust testing
 
-    let sd = dustify(sd);
+    let _sd = dustify(sd);
 
     // the line below is doing the same in one line as the two lines below
     //let interim: Vec<f64> = sd_rec_rounded.into_iter().flatten().collect();
     //let sd_rec_rounded: Vec<Vec<f64>> = interim.iter().map(|x| dustify(*x)).collect();
 
-    let sd_rec_rounded: Vec<Vec<f64>> = sd_rec_rounded.into_iter().map(dustify).collect();
+    let _sd_rec_rounded: Vec<Vec<f64>> = sd_rec_rounded.into_iter().map(dustify).collect();
 
     // make absolutely double check that this is returning the expected result
     //

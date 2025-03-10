@@ -140,56 +140,7 @@ pub fn reround(
             reconstruct_rounded_numbers_scalar(x, digits, rounding[0], threshold, symmetric)
         })
         .collect()
-
-    //x.iter()
-    //.map(|inner| {
-    //inner
-    //.iter()
-    //.flat_map(|&x| {
-    //reconstruct_rounded_numbers_scalar(x, digits, rounding[0], threshold, symmetric)
-    //})
-    //.collect()
-    //})
-    //.collect()
-
-    //this compiles, but does it work???
-
-    // not quite, it seems to not actually be returning quite enough elements, namely we're missing
-    // the 5th and 6th elements
-    // this might be downtream of reconstruct_rounded_numbers_scalar
-
-    //reconstruct_rounded_numbers_scalar(x, digits, rounding[0], threshold, symmetric)
 }
-
-//pub fn reround_bugged(
-//x: Vec<Vec<f64>>,
-//_digits: i32,
-//rounding: Vec<&str>,
-//_threshold: f64,
-//_symmetric: bool,
-//) {
-//if rounding.len() > 1 {
-//check_rounding_singular(rounding.clone(), "up_or_down", "up", "down")
-//.expect("Error in selecting rounding options");
-//check_rounding_singular(
-//rounding.clone(),
-//"up_from_or_down_from",
-//"up_from",
-//"down_from",
-//)
-//.expect("Error in selecting rounding options");
-//check_rounding_singular(rounding.clone(), "ceiling_or_floor", "ceiling", "floor")
-//.expect("Error in selecting rounding options");
-//
-//if (x.len() > 1) && (x.len() != rounding.len()) {
-//let x_len = x.len();
-//let round_len = rounding.len();
-//////////panic!("x and rounding must have the same length unless one of them have length 1. x has length {x_len} and rounding has length {round_len}")
-//}
-//}
-//
-//return reconstruct_rounded_numbers_scalar(x: f64, digits: i32, rounding[0]: &str, threshold: f64, symmetric: bool);
-//}
 
 /// check rounding singular, necessary for the reround function
 pub fn check_rounding_singular(
@@ -208,6 +159,12 @@ pub fn check_rounding_singular(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn check_rounding_singular_test() {
+        let val = check_rounding_singular(vec!["up_or_down"], "ceiling_or_floor", "up", "down");
+        assert_eq!(Ok(()), val)
+    }
 
     #[test]
     fn decimal_places_test_1() {
@@ -269,5 +226,29 @@ mod tests {
     fn reconstruct_rounded_numbers_scalar_test_1() {
         let res = reconstruct_rounded_numbers_scalar(2.9876, 3, "up_or_down", 5.0, false);
         assert_eq!(res, vec![2.988, 2.988])
+    }
+
+    #[test]
+    fn check_threshold_specified_test() {
+        check_threshold_specified(7.0); // this just needs to not panic
+    }
+
+    #[test]
+    fn dustify_test_1() {
+        let val = dustify(4.897034);
+        assert_eq!(val, vec![4.897034 - FUZZ_VALUE, 4.897034 + FUZZ_VALUE])
+    }
+
+    #[test]
+    fn reround_test_1() {
+        let val = reround(
+            vec![2.9876, 8.78964, 6.98767],
+            3,
+            vec!["up_or_down"],
+            5.0,
+            false,
+        );
+
+        assert_eq!(val, vec![2.988, 2.988, 8.790, 8.790, 6.988, 6.988])
     }
 }
