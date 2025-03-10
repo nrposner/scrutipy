@@ -180,12 +180,44 @@ pub fn grimmer_scalar(
     }
 }
 
+// grimmer vector
+
+#[allow(clippy::too_many_arguments)]
+pub fn grimmer_rust(
+    xs: Vec<&str>,
+    sds: Vec<&str>,
+    ns: Vec<u32>,
+    items: Vec<u32>,
+    bool_params: Vec<bool>,
+    rounding: Vec<&str>,
+    threshold: f64,
+    tolerance: f64,
+) -> Vec<bool> {
+    xs.iter()
+        .zip(sds.iter())
+        .zip(ns.iter())
+        .zip(items.iter())
+        .map(|(((x, sd), n), item)| {
+            grimmer_scalar(
+                x,
+                sd,
+                *n,
+                *item,
+                bool_params.clone(),
+                rounding.clone(),
+                threshold,
+                tolerance,
+            )
+        })
+        .collect()
+}
+
 #[cfg(test)]
 pub mod test {
     use super::*;
 
     #[test]
-    fn grimmer_test_1() {
+    fn grimmer_scalar_test_1() {
         let val = grimmer_scalar(
             "1.03",
             "0.41",
@@ -200,7 +232,7 @@ pub mod test {
     }
 
     #[test]
-    fn grimmer_test_2() {
+    fn grimmer_scalar_test_2() {
         let val = grimmer_scalar(
             "3.10",
             "1.37",
@@ -215,7 +247,7 @@ pub mod test {
     }
 
     #[test]
-    fn grimmer_test_3() {
+    fn grimmer_scalar_test_3() {
         let val = grimmer_scalar(
             "2.57",
             "2.57",
@@ -231,7 +263,7 @@ pub mod test {
 
     #[test]
     #[should_panic]
-    fn grimmer_test_4() {
+    fn grimmer_scalar_test_4() {
         let _ = grimmer_scalar(
             "2.57",
             "2.57",
@@ -247,7 +279,7 @@ pub mod test {
 
     #[test]
     #[should_panic]
-    fn grimmer_test_5() {
+    fn grimmer_scalar_test_5() {
         let _ = grimmer_scalar(
             "",
             "2.57",
@@ -262,7 +294,7 @@ pub mod test {
 
     #[test]
     #[should_panic]
-    fn grimmer_test_6() {
+    fn grimmer_scalar_test_6() {
         let _ = grimmer_scalar(
             "2.57",
             "",
@@ -273,5 +305,20 @@ pub mod test {
             5.0,
             EPS.powf(0.5),
         );
+    }
+
+    #[test]
+    fn grimmer_rust_test_1() {
+        let val = grimmer_rust(
+            vec!["1.03"],
+            vec!["0.41"],
+            vec![40],
+            vec![1],
+            vec![false, true, false],
+            vec!["up_or_down"],
+            5.0,
+            EPS.powf(0.5),
+        )[0];
+        assert!(!val)
     }
 }
