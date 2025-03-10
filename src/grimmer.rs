@@ -27,8 +27,9 @@ pub fn grimmer_scalar(
 
     let digits_sd = decimal_places_scalar(Some(sd), ".").unwrap();
 
-    let show_reason: bool = bool_params[0];
-    let symmetric: bool = bool_params[1];
+    let _percent: bool = bool_params[0];
+    let show_rec: bool = bool_params[1];
+    let symmetric: bool = bool_params[2];
 
     let grim_return = grim_scalar_rust(
         x,
@@ -57,7 +58,7 @@ pub fn grimmer_scalar(
     let x_real = sum_real / n_items as f64;
 
     if !pass_grim {
-        if show_reason {
+        if show_rec {
             panic!("code this arm already jackass")
         };
         return false;
@@ -83,7 +84,7 @@ pub fn grimmer_scalar(
     let pass_test1: bool = sum_squares_lower.ceil() <= sum_squares_upper.floor();
 
     if !pass_test1 {
-        if show_reason {
+        if show_rec {
             println!("Failed test 1");
             return false;
         };
@@ -129,7 +130,7 @@ pub fn grimmer_scalar(
     let pass_test2: bool = matches_sd.iter().any(|&b| b);
 
     if !pass_test2 {
-        if show_reason {
+        if show_rec {
             println!("Failed test 2");
             return false;
         };
@@ -155,14 +156,14 @@ pub fn grimmer_scalar(
     let pass_test3 = matches_sd_and_parity.iter().any(|&b| b);
 
     if !pass_test3 {
-        if show_reason {
+        if show_rec {
             println!("Failed test 3");
             return false;
         };
         return false;
     }
 
-    if show_reason {
+    if show_rec {
         println!("Passed all tests");
         true
     } else {
@@ -174,4 +175,57 @@ pub fn grimmer_scalar(
     //
 
     // likely not how it's meant to work, but I'm going to flatten
+}
+
+#[cfg(test)]
+pub mod test {
+    use super::*;
+
+    #[test]
+    fn grimmer_test_1() {
+        let val = grimmer_scalar(
+            "1.03",
+            "0.41",
+            40,
+            1,
+            vec![false, true, false],
+            vec!["up_or_down"],
+            5.0,
+            f64::EPSILON.powf(0.5),
+        );
+
+        assert!(!val)
+    }
+
+    #[test]
+    fn grimmer_test_2() {
+        let val = grimmer_scalar(
+            "3.10",
+            "1.37",
+            10,
+            1,
+            vec![false, true, false],
+            vec!["up_or_down"],
+            5.0,
+            f64::EPSILON.powf(0.5),
+        );
+
+        assert!(val)
+    }
+
+    #[test]
+    fn grimmer_test_3() {
+        let val = grimmer_scalar(
+            "2.57",
+            "2.57",
+            30,
+            1,
+            vec![false, true, false],
+            vec!["up_or_down"],
+            5.0,
+            f64::EPSILON.powf(0.5),
+        );
+
+        assert!(val)
+    }
 }
