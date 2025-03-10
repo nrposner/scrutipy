@@ -1,5 +1,7 @@
+use core::f64;
+
 use crate::decimal_places_scalar;
-use crate::grim::{grim_scalar_rust, GrimReturn};
+use crate::grim::{grim_scalar_rust, is_near, GrimReturn};
 use crate::rounding::rust_round;
 use crate::utils::{dustify, reround};
 
@@ -82,7 +84,8 @@ pub fn grimmer_scalar(
 
     if !pass_test1 {
         if show_reason {
-            panic!("code this arm already jackass")
+            println!("Failed test 1");
+            return false;
         };
         return false;
     };
@@ -105,19 +108,70 @@ pub fn grimmer_scalar(
 
     // again, double check on reround, give it some robust testing
 
-    let _sd = dustify(sd);
+    let sd = dustify(sd);
 
     // the line below is doing the same in one line as the two lines below
     //let interim: Vec<f64> = sd_rec_rounded.into_iter().flatten().collect();
     //let sd_rec_rounded: Vec<Vec<f64>> = interim.iter().map(|x| dustify(*x)).collect();
 
-    let _sd_rec_rounded: Vec<Vec<f64>> = sd_rec_rounded.into_iter().map(dustify).collect();
+    let sd_rec_rounded: Vec<f64> = sd_rec_rounded.into_iter().flat_map(dustify).collect();
+
+    // checking whether the elements of sd are within a tolerance of their equivalent in
+    // sd_rec_rounded
+    // also assuming we should be flattening the latter
+
+    let matches_sd: Vec<bool> = sd
+        .iter()
+        .zip(sd_rec_rounded.iter())
+        .map(|(i, sdr)| is_near(*i, *sdr, f64::EPSILON.powf(0.5)))
+        .collect();
+
+    let pass_test2: bool = matches_sd.iter().any(|&b| b);
+
+    if !pass_test2 {
+        if show_reason {
+            println!("Failed test 2");
+            return false;
+        };
+
+        return false;
+    }
+
+    let sum_parity = sum_real % 2.0;
+
+    let matches_parity: Vec<bool> = integers_possible
+        .iter()
+        .map(|&n| n as f64 % 2.0 == sum_parity)
+        .collect();
+
+    //let matches_parity = sum_real % 2.0 == (integers_possible % 2);
+
+    let matches_sd_and_parity: Vec<bool> = matches_sd
+        .iter()
+        .zip(matches_parity)
+        .map(|(s, p)| s & p)
+        .collect();
+
+    let pass_test3 = matches_sd_and_parity.iter().any(|&b| b);
+
+    if !pass_test3 {
+        if show_reason {
+            println!("Failed test 3");
+            return false;
+        };
+        return false;
+    }
+
+    if show_reason {
+        println!("Passed all tests");
+        true
+    } else {
+        true
+    }
 
     // make absolutely double check that this is returning the expected result
     //
     //
 
     // likely not how it's meant to work, but I'm going to flatten
-
-    true
 }
