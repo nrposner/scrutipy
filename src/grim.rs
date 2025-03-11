@@ -210,11 +210,10 @@ pub fn grim_tester(grim_result: Result<GrimReturn, std::num::ParseFloatError>, e
     };
 }
 
-//#[pymodule]
 // for some reason this causes an error when using cargo test --lib
 // commenting out for the moment, let's see if this has any effect on the porting to python
-#[allow(dead_code)]
-fn scrutipy(module: &Bound<'_, PyModule>) -> PyResult<()> {
+#[pymodule]
+fn scrutipy(_py: Python, module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(grim_scalar, module)?)?;
     Ok(())
 }
