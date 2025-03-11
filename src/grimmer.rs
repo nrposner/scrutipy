@@ -4,6 +4,9 @@ use crate::decimal_places_scalar;
 use crate::grim::{grim_scalar_rust, is_near, GrimReturn};
 use crate::rounding::rust_round;
 use crate::utils::{dustify, reround};
+use pyo3::prelude::Bound;
+use pyo3::prelude::*;
+use pyo3::{pyfunction, wrap_pyfunction};
 
 const EPS: f64 = f64::EPSILON;
 
@@ -180,7 +183,43 @@ pub fn grimmer_scalar(
     }
 }
 
-// grimmer vector
+#[pyfunction(signature = (xs, sds, ns, rounding, items=vec![1], percent = false, show_reason = false, threshold = 5.0, symmetric = false, tolerance = f64::EPSILON.powf(0.5)))]
+#[allow(clippy::too_many_arguments)]
+pub fn grimmer(
+    xs: Vec<String>,
+    sds: Vec<String>,
+    ns: Vec<u32>,
+    rounding: Vec<String>,
+    items: Vec<u32>,
+    percent: bool,
+    show_reason: bool,
+    threshold: f64,
+    symmetric: bool,
+    tolerance: f64,
+) -> Vec<bool> {
+    let bool_params = vec![percent, show_reason, symmetric];
+    let xs: Vec<&str> = xs.iter().map(|s| &**s).collect();
+    let sds: Vec<&str> = sds.iter().map(|s| &**s).collect();
+    let rounding: Vec<&str> = rounding.iter().map(|s| &**s).collect();
+
+    grimmer_rust(
+        xs,
+        sds,
+        ns,
+        items,
+        bool_params,
+        rounding,
+        threshold,
+        tolerance,
+    )
+}
+
+#[pymodule]
+#[allow(dead_code)]
+fn scrutipy(module: &Bound<'_, PyModule>) -> PyResult<()> {
+    module.add_function(wrap_pyfunction!(grimmer, module)?)?;
+    Ok(())
+}
 
 #[allow(clippy::too_many_arguments)]
 pub fn grimmer_rust(
