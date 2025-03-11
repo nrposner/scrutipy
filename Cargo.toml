@@ -1,11 +1,10 @@
 [package]
-name = "scrutipy"
+name = "scrutipy_rs"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
-name = "scrutipy"
+name = "scrutipy_rs"
 crate-type = ["cdylib"]
 
 [dependencies]
@@ -14,3 +13,7 @@ numpy = "0.23.0"
 pyo3 = "0.23.3"
 regex = "1.11.1"
 serde = { version = "1.0.218", features = ["derive"] }
+
+[package.metadata.maturin]
+name = "scrutipy_rs"
+

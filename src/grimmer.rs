@@ -214,7 +214,7 @@ pub fn grimmer(
     )
 }
 
-#[pymodule]
+//#[pymodule]
 #[allow(dead_code)]
 fn scrutipy(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(grimmer, module)?)?;

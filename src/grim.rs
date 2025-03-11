@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 use pyo3::{pyfunction, wrap_pyfunction, FromPyObject};
 
 #[derive(FromPyObject)]
-enum GRIMInput {
+pub enum GRIMInput {
     Str(String),
     Num(f64), // ideally, this will also capture an input integer and coerce it into and f64.
               // Make a test case on the Python end to confirm this
@@ -12,9 +12,9 @@ enum GRIMInput {
 /// reproducing scrutiny's grim_scalar() function, albeit with slightly different order of
 /// arguments, because unlike R, Python requires that all the positional parameters be provided up
 /// front before optional arguments with defaults
-#[pyfunction(signature = (x, n, rounding, items=1, percent = false, show_rec = false, threshold = 5.0, symmetric = false, tolerance = f64::EPSILON.powf(0.5)))]
 #[allow(clippy::too_many_arguments)]
-fn grim_scalar(
+#[pyfunction(signature = (x, n, rounding = vec!["up_or_down".to_string()], items=1, percent = false, show_rec = false, threshold = 5.0, symmetric = false, tolerance = f64::EPSILON.powf(0.5)))]
+pub fn grim_scalar(
     x: GRIMInput,
     n: u32,
     rounding: Vec<String>,
@@ -212,8 +212,8 @@ pub fn grim_tester(grim_result: Result<GrimReturn, std::num::ParseFloatError>, e
 
 // for some reason this causes an error when using cargo test --lib
 // commenting out for the moment, let's see if this has any effect on the porting to python
-#[pymodule]
-fn scrutipy(_py: Python, module: &Bound<'_, PyModule>) -> PyResult<()> {
+#[pymodule(name = "scrutipy_rs")]
+fn scrutipy_rs(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(grim_scalar, module)?)?;
     Ok(())
 }
