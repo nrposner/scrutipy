@@ -17,3 +17,5 @@ serde = { version = "1.0.218", features = ["derive"] }
 [package.metadata.maturin]
 name = "scrutipy_rs"
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tarpaulin_include)']}

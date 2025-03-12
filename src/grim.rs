@@ -212,6 +212,7 @@ pub fn grim_tester(grim_result: Result<GrimReturn, std::num::ParseFloatError>, e
 
 // for some reason this causes an error when using cargo test --lib
 // commenting out for the moment, let's see if this has any effect on the porting to python
+#[cfg(not(tarpaulin_include))]
 #[pymodule(name = "scrutipy_rs")]
 fn scrutipy_rs(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(grim_scalar, module)?)?;
@@ -305,6 +306,69 @@ pub mod tests {
             bools,
             vec![true, false, false, false, false, true, false, true, false, false, true, false]
         );
+    }
+
+    #[test]
+    pub fn grim_rust_test_2() {
+        let xs = vec![
+            "7.22", "4.74", "5.23", "2.57", "6.77", "2.68", "7.01", "7.38", "3.14", "6.89", "5.00",
+            "0.24",
+        ];
+
+        let ns = vec![32, 25, 29, 24, 27, 28, 29, 26, 27, 31, 25, 28];
+
+        let items = vec![1; 12]; //presumably all 1s?
+
+        let bools = grim_rust(
+            xs,
+            ns,
+            vec![true, false, false],
+            items,
+            vec!["up_or_down"],
+            5.0,
+            f64::EPSILON.powf(0.5),
+        );
+
+        assert_eq!(
+            bools,
+            vec![
+                false, false, false, false, false, false, false, false, false, false, false, false
+            ]
+        );
+    }
+
+    #[test]
+    pub fn grim_scalar_test_1() {
+        let input = GRIMInput::Str("5.19".to_string());
+        let val = grim_scalar(
+            input,
+            40,
+            vec!["up_or_down".to_string()],
+            1,
+            false,
+            false,
+            5.0,
+            false,
+            f64::EPSILON.powf(0.5),
+        );
+        assert!(!val);
+    }
+
+    #[test]
+    pub fn grim_scalar_test_2() {
+        let input = GRIMInput::Num(5.19);
+        let val = grim_scalar(
+            input,
+            40,
+            vec!["up_or_down".to_string()],
+            1,
+            false,
+            false,
+            5.0,
+            false,
+            f64::EPSILON.powf(0.5),
+        );
+        assert!(!val);
     }
 }
 // round the grains using reround(), see reround.R
