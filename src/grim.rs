@@ -185,7 +185,7 @@ pub fn grim_scalar_rust(
                 //grains_rounded[5].clone(),
             ))
         } else {
-            Ok(GrimReturn::Bool(true))
+            Ok(GrimReturn::Bool(grain_is_x))
         }
     }
 }
@@ -282,6 +282,20 @@ pub mod tests {
     }
 
     #[test]
+    pub fn grim_scalar_rust_test_5() {
+        let val = grim_scalar_rust(
+            "5.19",
+            20,
+            vec![false, true, false],
+            1,
+            vec!["up"],
+            5.0,
+            f64::EPSILON.powf(0.5),
+        );
+        grim_tester(val, false);
+    }
+
+    #[test]
     pub fn grim_rust_test_1() {
         let xs = vec![
             "7.22", "4.74", "5.23", "2.57", "6.77", "2.68", "7.01", "7.38", "3.14", "6.89", "5.00",
@@ -369,6 +383,39 @@ pub mod tests {
             f64::EPSILON.powf(0.5),
         );
         assert!(!val);
+    }
+
+    #[test]
+    #[should_panic]
+    pub fn grim_scalar_test_3() {
+        let input = GRIMInput::Str("not a number".to_string());
+        let _ = grim_scalar(
+            input,
+            40,
+            vec!["up_or_down".to_string()],
+            1,
+            false,
+            false,
+            5.0,
+            false,
+            f64::EPSILON.powf(0.5),
+        );
+    }
+
+    #[test]
+    #[should_panic]
+    pub fn grim_tester_test_1() {
+        let val = grim_scalar_rust(
+            "not a number",
+            50,
+            vec![false, false, false],
+            1,
+            vec!["up_or_down"],
+            5.0,
+            f64::EPSILON.powf(0.5),
+        );
+
+        grim_tester(val, false)
     }
 }
 // round the grains using reround(), see reround.R
