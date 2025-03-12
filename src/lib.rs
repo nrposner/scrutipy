@@ -1,6 +1,7 @@
 pub mod grim;
 pub mod grim_map;
 pub mod grim_stats;
+pub mod grim_tests;
 pub mod grimmer;
 pub mod rounding;
 pub mod sd_binary;
