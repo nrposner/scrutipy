@@ -270,4 +270,40 @@ mod tests {
 
         assert_eq!(98.7824, val)
     }
+
+    #[test]
+    pub fn round_trunc_test_1() {
+        let val = round_trunc(5.786487, 3);
+        assert_eq!(val, 5.786)
+    }
+
+    #[test]
+    pub fn round_trunc_test_2() {
+        let val = round_trunc(-5.786487, 3);
+        assert_eq!(val, -5.786)
+    }
+
+    #[test]
+    pub fn anti_trunc_test_1() {
+        let val = anti_trunc(5.786487);
+        assert_eq!(val, 6.0)
+    }
+
+    #[test]
+    pub fn anti_trunc_test_2() {
+        let val = anti_trunc(-5.786487);
+        assert_eq!(val, -6.0)
+    }
+
+    #[test]
+    pub fn round_anti_trunc_test_1() {
+        let val = round_anti_trunc(5.4924723, 3);
+        assert_eq!(val, 5.493)
+    }
+
+    #[test]
+    pub fn round_anti_trunc_test_2() {
+        let val = round_anti_trunc(-5.4924723, 3);
+        assert_eq!(val, -5.493)
+    }
 }
