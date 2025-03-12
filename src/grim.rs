@@ -6,8 +6,8 @@ use pyo3::{pyfunction, wrap_pyfunction, FromPyObject};
 #[derive(FromPyObject)]
 pub enum GRIMInput {
     Str(String),
-    Num(f64), // ideally, this will also capture an input integer and coerce it into and f64.
-              // Make a test case on the Python end to confirm this
+    Num(f64), // this captures input integer and coerces it into a string if possible, in order to
+              // deal with user error on the Python interface
 }
 /// reproducing scrutiny's grim_scalar() function, albeit with slightly different order of
 /// arguments, because unlike R, Python requires that all the positional parameters be provided up
@@ -154,10 +154,6 @@ pub fn grim_scalar_rust(
 
     let grains_rounded = reround(conc, digits, rounding.clone(), threshold, symmetric);
 
-    // let flat: Vec<f64> = grains_rounded.clone().into_iter().flatten().collect();
-
-    // what's the return type here? is it a vec of bools? Let's run grim with some sample data and
-    // check. Or are we checking whether any single one of these is true??
     let bools: Vec<bool> = grains_rounded
         .clone()
         .into_iter()
@@ -210,54 +206,9 @@ pub fn grim_tester(grim_result: Result<GrimReturn, std::num::ParseFloatError>, e
     };
 }
 
-// for some reason this causes an error when using cargo test --lib
-// commenting out for the moment, let's see if this has any effect on the porting to python
 #[cfg(not(tarpaulin_include))]
 #[pymodule(name = "scrutipy_rs")]
 fn scrutipy_rs(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(grim_scalar, module)?)?;
     Ok(())
 }
-
-// round the grains using reround(), see reround.R
-
-// what is the return type? not a single value, but a list of values, depending on the
-// conditions
-
-// let's start with a nice simple one GRIM
-//
-// let's pseudocode this out
-//
-// we take in a number, eg 5.19
-// a sample n associated with that number
-// a number of items, by default 1
-// and then some defaults and keyword arguments we can deal with
-//
-// we need to check that 'items' is a number, and that the
-// percent keyword is a bool
-//
-// we expect x to actually come in as a string
-// instead of as a number, because we need to preserve trailing 0s
-//
-// we then turn x into a number in a separate variable, and
-// record the number of decimal places separately
-//
-// possibly convert these into percents if need be
-//
-// we create n_items, which is the sample size times the number if items
-// still not quite clear on what 'items' is doing
-// and rec_sum, n_items times the numerical value of x, which if
-// x is a mean should be the sum of all the original values
-//
-// then use the dustify() function to generate an upper and lower bound
-// for the possible mean or percent vales
-//
-// round them using a specialized internal function
-//
-// then check if the reported value is close to either of the reconstructed values, the upper or
-// lower bound
-//
-// i guess dustify is actually really simple, it just fuzzes the value to within 1e-12 and returns
-// the values as  a vector
-//
-//
