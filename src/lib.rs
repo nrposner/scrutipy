@@ -4,6 +4,7 @@ pub mod grim_stats;
 pub mod grim_tests;
 pub mod grimmer;
 pub mod rounding;
+pub mod rounding_tests;
 pub mod sd_binary;
 pub mod utils;
 
