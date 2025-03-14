@@ -1,6 +1,6 @@
 // now do the sd_binary functions, originally from the sd-binary.R file not utils, but for now we
 // can keep them here, they're short enough
-
+// 66, 70, 94, 98, 122, 126
 #[allow(unused_imports)]
 use crate::rounding::rust_round;
 /// Returns the standard deviation of binary value counts
@@ -17,19 +17,31 @@ use crate::rounding::rust_round;
 ///
 /// Panics:
 ///     If the total number of observations is not greater than one
-pub fn sd_binary_groups(zeros: u32, ones: u32) -> f64 {
+pub fn sd_binary_groups(zeros: u32, ones: u32) -> Result<f64, SdBinaryError> {
     // though we take in the counts as unsigned integers, we transform them into
     // floating point values in order to perform the
     let n: f64 = zeros as f64 + ones as f64;
 
-    // we assert that between the two groups there are at least two observations. There's not
-    // much point otherwise
-    assert!(n > 1.0, "Expecting at least two observations");
-
+    if n < 2.0 {
+        return Err(SdBinaryError::InsufficientObservationsError);
+    }
     // sqrt((n / (n - 1)) * ((group_0 * group_1) / (n ^ 2)))
-    (n / (n - 1.0) * ((zeros * ones) as f64 / n.powi(2))).sqrt()
+    Ok((n / (n - 1.0) * ((zeros * ones) as f64 / n.powi(2))).sqrt())
 
     //sqrt((n / (n - 1)) * ((group_0 * group_1) / (n ^ 2)))
+}
+
+use thiserror::Error;
+#[derive(Debug, Error, PartialEq)]
+pub enum SdBinaryError {
+    #[error("There cannot be more observations {0} in one condition than in the whole system {1}")]
+    ObservationCountError(u32, u32),
+    #[error("There must be at least two observations")]
+    InsufficientObservationsError,
+    #[error("The mean of binary observations cannot be less than 0.0")]
+    NegativeBinaryMeanError,
+    #[error("The mean of binary observations cannot be greater than 1.0")]
+    InvalidBinaryError,
 }
 
 /// Returns the standard deviation of binary variables from the count of zero values and the total
@@ -47,16 +59,18 @@ pub fn sd_binary_groups(zeros: u32, ones: u32) -> f64 {
 /// Panics:
 ///     If there are more observations in the zero condition than in the total
 ///     If the total number of observations is not greater than one
-pub fn sd_binary_0_n(zeros: u32, n: u32) -> f64 {
+pub fn sd_binary_0_n(zeros: u32, n: u32) -> Result<f64, SdBinaryError> {
     let ones: f64 = n as f64 - zeros as f64;
 
-    assert!(
-        n >= zeros,
-        "There cannot be more observations in one condition than in the whole system"
-    );
-    assert!(n > 1, "Expecting at least two observations");
+    if n < zeros {
+        return Err(SdBinaryError::ObservationCountError(zeros, n));
+    }
 
-    ((n as f64 / (n - 1) as f64) * ((zeros as f64 * ones) / (n as f64).powi(2))).sqrt()
+    if n < 2 {
+        return Err(SdBinaryError::InsufficientObservationsError);
+    }
+
+    Ok(((n as f64 / (n - 1) as f64) * ((zeros as f64 * ones) / (n as f64).powi(2))).sqrt())
 }
 /// Returns the standard deviation of binary variables from the count of one values and the total
 ///
@@ -73,17 +87,19 @@ pub fn sd_binary_0_n(zeros: u32, n: u32) -> f64 {
 /// Panics:
 ///     If there are more observations in the one condition than in the total
 ///     If the total number of observations is not greater than one
-pub fn sd_binary_1_n(ones: u32, n: u32) -> f64 {
+pub fn sd_binary_1_n(ones: u32, n: u32) -> Result<f64, SdBinaryError> {
     let zeros: f64 = n as f64 - ones as f64;
 
-    assert!(
-        n >= ones,
-        "There cannot be more observations in one condition than in the whole system"
-    );
-    assert!(n > 1, "Expecting at least two observations");
+    if n < ones {
+        return Err(SdBinaryError::ObservationCountError(ones, n));
+    }
+
+    if n < 2 {
+        return Err(SdBinaryError::InsufficientObservationsError);
+    }
 
     //((n / (n - 1)) as f64).sqrt() * ((zeros * ones as f64) / (n as f64).powi(2))
-    ((n as f64 / (n - 1) as f64) * ((zeros * ones as f64) / (n as f64).powi(2))).sqrt()
+    Ok(((n as f64 / (n - 1) as f64) * ((zeros * ones as f64) / (n as f64).powi(2))).sqrt())
 }
 /// Returns the standard deviation of binary variables from the mean and the total
 ///
@@ -101,16 +117,16 @@ pub fn sd_binary_1_n(ones: u32, n: u32) -> f64 {
 ///
 /// Panics:
 ///     if the mean is greater than one or less than zero
-pub fn sd_binary_mean_n(mean: f64, n: u32) -> f64 {
-    assert!(
-        mean >= 0.0,
-        "The mean of binary observations cannot be less than 0"
-    );
-    assert!(
-        mean <= 1.0,
-        "The mean of binary observations cannot be greater than 1"
-    );
-    ((n as f64 / (n - 1) as f64) * (mean * (1.0 - mean))).sqrt()
+pub fn sd_binary_mean_n(mean: f64, n: u32) -> Result<f64, SdBinaryError> {
+    if mean < 0.0 {
+        return Err(SdBinaryError::NegativeBinaryMeanError);
+    }
+
+    if mean > 1.0 {
+        return Err(SdBinaryError::InvalidBinaryError);
+    }
+
+    Ok(((n as f64 / (n - 1) as f64) * (mean * (1.0 - mean))).sqrt())
 }
 
 #[cfg(test)]
@@ -120,10 +136,60 @@ pub mod tests {
     #[test]
     pub fn sd_binary_mean_test_1() {
         let res = sd_binary_mean_n(0.3, 30);
-        assert_eq!(rust_round(res, 7), 0.4660916) // rounding to the 7th decimal place to match R
-                                                  // output
+        assert_eq!(rust_round(res.unwrap(), 7), 0.4660916) // rounding to the 7th decimal place to match R
+                                                           // output
     }
 
     #[test]
-    pub fn sd_binary_groups_test_1() {}
+    fn sd_binary_mean_test_2() {
+        let res = sd_binary_mean_n(-0.04, 78);
+
+        assert_eq!(SdBinaryError::NegativeBinaryMeanError, res.unwrap_err())
+    }
+
+    #[test]
+    fn sd_binary_mean_test_3() {
+        let res = sd_binary_mean_n(1.04, 78);
+
+        assert_eq!(SdBinaryError::InvalidBinaryError, res.unwrap_err())
+    }
+
+    #[test]
+    pub fn sd_binary_groups_test_1() {
+        let res = sd_binary_groups(0, 1);
+        assert_eq!(
+            SdBinaryError::InsufficientObservationsError,
+            res.unwrap_err()
+        )
+    }
+
+    #[test]
+    fn sd_binary_0_n_test_1() {
+        let res = sd_binary_0_n(5, 4);
+        assert_eq!(SdBinaryError::ObservationCountError(5, 4), res.unwrap_err())
+    }
+
+    #[test]
+    fn sd_binary_0_n_test_2() {
+        let res = sd_binary_0_n(1, 1);
+        assert_eq!(
+            SdBinaryError::InsufficientObservationsError,
+            res.unwrap_err()
+        )
+    }
+
+    #[test]
+    fn sd_binary_1_n_test_1() {
+        let res = sd_binary_1_n(5, 4);
+        assert_eq!(SdBinaryError::ObservationCountError(5, 4), res.unwrap_err())
+    }
+
+    #[test]
+    fn sd_binary_1_n_test_2() {
+        let res = sd_binary_1_n(1, 1);
+        assert_eq!(
+            SdBinaryError::InsufficientObservationsError,
+            res.unwrap_err()
+        )
+    }
 }

@@ -4,6 +4,13 @@ use crate::grim_stats::grim_probability;
 use serde::Deserialize;
 use std::error::Error;
 
+// TODO 3/12/35
+// add capacity for grim_map to take in either a csv file directly, loading it internally, or a
+// pandas/polars dataframe. Look into how PyO3 encodes that. Probably will need to include keyword
+// arguments on the python side to select the right columns in cases where there are more than two,
+// custom errors if the columns don't include the right kinds of objects, checks and coercions up
+// front to make this flexible and easy to use. It'll be a good challenge
+
 /// for the moment, implementing without show_rec
 /// we want to take in a dataframe, be able to take in some arguments for which column contains
 /// means (as strings) and which one contains counts, and if we don't get one or the other, we default to the
