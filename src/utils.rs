@@ -1,7 +1,7 @@
 use crate::rounding::*;
 use crate::sd_binary::*;
 use regex::Regex;
-// 108-111, 119-120, 122-123, 125-127, 129-133 untest lines
+// 124-125, 127-128, 130-132, 134-138
 const FUZZ_VALUE: f64 = 1e-12;
 
 /// Fuzzes the value of a float by 1e-12
@@ -44,8 +44,8 @@ pub enum ReconstructSdError {
     NotANumber(String),
     #[error("{0} is not a formula")]
     NotAFormula(String),
-    #[error("")]
-    NumberInconsistencyError(SdBinaryError),
+    #[error("Inputs to reconstruct_sd_scalar failed. The reconstruction formula {0} was called but resulted in a {1}")]
+    SdBinaryError(String, SdBinaryError),
     // complete this so that the error propagates from the function below
 }
 
@@ -75,7 +75,7 @@ pub fn reconstruct_sd_scalar(
 
     match sd_rec {
         Ok(num) => Ok(num),
-        Err(e) => Err(ReconstructSdError::NumberInconsistencyError(e)),
+        Err(e) => Err(ReconstructSdError::SdBinaryError(formula.to_string(), e)),
     }
 }
 
@@ -109,7 +109,7 @@ pub fn reconstruct_rounded_numbers_scalar(
         "up_or_down" => vec![round_up(x, digits), round_down(x, digits)], // this is supposed to
         // contain a `symmetric` argument in the R code, but that's not present in the definition
         // for round up and round down ??
-        "up_or_down_from" => {
+        "up_from_or_down_from" => {
             check_threshold_specified(threshold); // untested
             vec![
                 round_up_from(vec![x], digits, threshold, symmetric)[0], // untested
@@ -117,23 +117,22 @@ pub fn reconstruct_rounded_numbers_scalar(
                                                                            // solution to suppress the errors while we're migrating this from scalar to
             ]
         }
-        "cieling_or_floor" => vec![round_ceiling(x, digits), round_floor(x, digits)],
+        "ceiling_or_floor" => vec![round_ceiling(x, digits), round_floor(x, digits)],
         "even" => vec![rust_round(x, digits)],
         "up" => vec![round_up(x, digits)], // supposed to have a symmetric keyword, but round up
         // definition doesn't have it, ???
         "down" => vec![round_down(x, digits)], // supposed to have a symmetric keyword, but round down definition doesn't have it ??? // untested
         "up_from" => {
-            // untested
-            check_threshold_specified(threshold); // untested
-            round_up_from(vec![x], digits, threshold, symmetric) // untested
+            check_threshold_specified(threshold);
+            round_up_from(vec![x], digits, threshold, symmetric)
         }
         "down_from" => {
-            check_threshold_specified(threshold); // untested
-            vec![round_down_from(vec![x], digits, threshold, symmetric)[0]] // untested
+            check_threshold_specified(threshold);
+            vec![round_down_from(vec![x], digits, threshold, symmetric)[0]]
         }
-        "ceiling" => vec![round_ceiling(x, digits)], // untested
-        "floor" => vec![round_floor(x, digits)],     // untested
-        "trunc" => vec![round_trunc(x, digits)],     // untested
+        "ceiling" => vec![round_ceiling(x, digits)],
+        "floor" => vec![round_floor(x, digits)], // untested
+        "trunc" => vec![round_trunc(x, digits)], // untested
         "anti_trunc" => vec![round_anti_trunc(x, digits)], // untested
         _ => panic!("`rounding` must be one of the designated string keywords"), // untested
     }
@@ -262,7 +261,7 @@ mod tests {
             Ok(num) => Some(num),
             Err(ReconstructSdError::NotANumber(_)) => Some(-1.0),
             Err(ReconstructSdError::NotAFormula(_)) => None,
-            Err(ReconstructSdError::NumberInconsistencyError(_)) => None,
+            Err(ReconstructSdError::SdBinaryError(_, _)) => None,
         };
         assert_eq!(Some(-1.0), res)
     }
@@ -275,9 +274,27 @@ mod tests {
             Ok(num) => Some(num),
             Err(ReconstructSdError::NotAFormula(_)) => Some(-1.0),
             Err(ReconstructSdError::NotANumber(_)) => None,
-            Err(ReconstructSdError::NumberInconsistencyError(_)) => None,
+            Err(ReconstructSdError::SdBinaryError(_, _)) => None,
         };
         assert_eq!(Some(-1.0), res)
+    }
+
+    #[test]
+    fn reconstruct_sd_scalar_test_7() {
+        let sd_rec_scalar = reconstruct_sd_scalar("0_n", "0.8", 2, 3, 1);
+
+        let _s = "0_n".to_string();
+        let res = match sd_rec_scalar {
+            Ok(_num) => None,
+            Err(ReconstructSdError::NotAFormula(_)) => None,
+            Err(ReconstructSdError::NotANumber(_)) => None,
+            Err(ReconstructSdError::SdBinaryError(
+                _s,
+                SdBinaryError::ObservationCountError(3, 2),
+            )) => Some(1),
+            _ => None,
+        };
+        assert_eq!(res, Some(1))
     }
 
     #[test]
@@ -286,6 +303,90 @@ mod tests {
         assert_eq!(res, vec![2.988, 2.988])
     }
 
+    #[test]
+    #[should_panic]
+    fn reconstruct_rounded_numbers_scalar_test_2() {
+        let _res =
+            reconstruct_rounded_numbers_scalar(2.9876, 3, "up_from_or_down_from", 5.0, false);
+    }
+
+    #[test]
+    fn reconstruct_rounded_numbers_scalar_test_3() {
+        let res = reconstruct_rounded_numbers_scalar(2.9856, 3, "up_from_or_down_from", 6.0, false);
+
+        assert_eq!(res, vec![2.986, 2.986])
+    }
+
+    #[test]
+    fn reconstruct_rounded_numbers_scalar_test_4() {
+        let res = reconstruct_rounded_numbers_scalar(2.9856, 3, "down", 5.0, false);
+
+        assert_eq!(res, vec![2.986])
+    }
+
+    #[test]
+    #[should_panic]
+    fn reconstruct_rounded_numbers_scalar_test_5() {
+        let res = reconstruct_rounded_numbers_scalar(2.9856, 3, "up_from", 5.0, false);
+
+        assert_eq!(res, vec![2.986])
+    }
+
+    #[test]
+    fn reconstruct_rounded_numbers_scalar_test_6() {
+        let res = reconstruct_rounded_numbers_scalar(2.9856, 3, "up_from", 6.0, false);
+
+        assert_eq!(res, vec![2.986])
+    }
+
+    #[test]
+    #[should_panic]
+    fn reconstruct_rounded_numbers_scalar_test_7() {
+        let res = reconstruct_rounded_numbers_scalar(2.9856, 3, "down_from", 5.0, false);
+
+        assert_eq!(res, vec![2.986])
+    }
+
+    #[test]
+    fn reconstruct_rounded_numbers_scalar_test_8() {
+        let res = reconstruct_rounded_numbers_scalar(2.9856, 3, "down_from", 6.0, false);
+
+        assert_eq!(res, vec![2.986])
+    }
+
+    #[test]
+    fn reconstruct_rounded_numbers_scalar_test_9() {
+        let res = reconstruct_rounded_numbers_scalar(2.9856, 3, "ceiling", 5.0, false);
+
+        assert_eq!(res, vec![2.986])
+    }
+
+    #[test]
+    fn reconstruct_rounded_numbers_scalar_test_10() {
+        let res = reconstruct_rounded_numbers_scalar(2.9856, 3, "floor", 5.0, false);
+
+        assert_eq!(res, vec![2.985])
+    }
+
+    #[test]
+    fn reconstruct_rounded_numbers_scalar_test_11() {
+        let res = reconstruct_rounded_numbers_scalar(2.9856, 3, "trunc", 5.0, false);
+
+        assert_eq!(res, vec![2.985])
+    }
+
+    #[test]
+    fn reconstruct_rounded_numbers_scalar_test_12() {
+        let res = reconstruct_rounded_numbers_scalar(2.9856, 3, "anti_trunc", 5.0, false);
+
+        assert_eq!(res, vec![2.986])
+    }
+
+    #[test]
+    #[should_panic]
+    fn reconstruct_rounded_numbers_scalar_test_13() {
+        let _res = reconstruct_rounded_numbers_scalar(2.9856, 3, "wrong", 5.0, false);
+    }
     #[test]
     fn check_threshold_specified_test_1() {
         check_threshold_specified(7.0); // this just needs to not panic

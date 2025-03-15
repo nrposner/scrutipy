@@ -96,7 +96,7 @@ pub fn round_up_from_scalar(x: f64, p10: f64, threshold: f64, symmetric: bool) -
 
 pub fn round_down_from(x: Vec<f64>, digits: i32, threshold: f64, symmetric: bool) -> Vec<f64> {
     let p10 = 10.0f64.powi(digits);
-    let threshold = threshold + f64::EPSILON.powf(0.5);
+    let threshold = threshold - f64::EPSILON.powf(0.5);
 
     // let's make a round_down_from_scalar function that we can .map onto the vector
     //
@@ -112,10 +112,13 @@ pub fn round_down_from_scalar(x: f64, p10: f64, threshold: f64, symmetric: bool)
 
     if symmetric {
         match x < 0.0 {
-            true => -(x.abs() * p10 + (1.0 - (threshold / 10.0))).floor() / p10, // - (floor(abs(x) * p10 + (1 - (threshold / 10))) / p10)
-            false => (x * p10 + (1.0 - (threshold / 10.0))).floor() / p10,
+            true => -(x.abs() * p10 - (1.0 - (threshold / 10.0))).ceil() / p10,
+            false => (x * p10 - (1.0 - (threshold / 10.0))).ceil() / p10,
         }
     } else {
-        (x * p10 + (1.0 - (threshold / 10.0))).floor() / p10
+        (x * p10 - (1.0 - (threshold / 10.0))).ceil() / p10
+
+        //(x * p10 - (1-(threshold / 10))).ceil() / p10
+        // ceiling(x * p10 - (1 - (threshold / 10))) / p10
     }
 }

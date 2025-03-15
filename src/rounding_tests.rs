@@ -36,6 +36,14 @@ mod tests {
     }
 
     #[test]
+    pub fn round_down_from_test_6() {
+        assert_eq!(
+            round_down_from(vec![-65.34845, -645.76543], 4, 5.0, true),
+            vec![-65.3484, -645.7654]
+        )
+    }
+
+    #[test]
     pub fn round_up_from_test_1() {
         assert_eq!(
             round_up_from(vec![65.3488492, 645.76543], 4, 5.0, false),
@@ -68,6 +76,14 @@ mod tests {
     }
 
     #[test]
+    pub fn round_up_from_test_6() {
+        assert_eq!(
+            round_up_from(vec![-65.34845, -645.76543], 4, 5.0, true),
+            vec![-65.3485, -645.7654]
+        )
+    }
+
+    #[test]
     pub fn round_down_from_scalar_test_1() {
         let p10 = 10.0f64.powi(4);
         assert_eq!(round_down_from_scalar(65.3488492, p10, 5.0, false), 65.3488)
@@ -76,10 +92,7 @@ mod tests {
     #[test]
     pub fn round_down_from_scalar_test_2() {
         let p10 = 10.0f64.powi(4);
-        assert_eq!(
-            round_down_from_scalar(65.34845, p10, 5.0 + f64::EPSILON.powf(0.5), false),
-            65.3484
-        )
+        assert_eq!(round_down_from_scalar(65.34845, p10, 5.0, false), 65.3484)
     }
 
     #[test]
