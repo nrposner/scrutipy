@@ -7,7 +7,7 @@ use crate::utils::{dustify, reround};
 use pyo3::prelude::Bound;
 use pyo3::prelude::*;
 use pyo3::{pyfunction, wrap_pyfunction};
-
+//  146-148, 150, 169-171, 173, 180, 186, 198-201, 204-211, 217-219
 const EPS: f64 = f64::EPSILON;
 
 // bool params in this case takes show_reason, default false, and symmetric, default false
@@ -97,10 +97,8 @@ pub fn grimmer_scalar(
 
     let sd: f64 = sd.parse().unwrap(); // why can't this be a ?
 
-    let sd_lower = match sd < p10_frac {
-        true => 0f64,
-        false => sd - p10_frac,
-    };
+    let sd_lower = (sd - p10_frac).max(0.0); // returning 0 if p10_frac is greater than sd and
+                                             // would thus return a negative number
 
     let sd_upper = sd + p10_frac;
 
@@ -183,6 +181,7 @@ pub fn grimmer_scalar(
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 #[pyfunction(signature = (xs, sds, ns, rounding, items=vec![1], percent = false, show_reason = false, threshold = 5.0, symmetric = false, tolerance = f64::EPSILON.powf(0.5)))]
 #[allow(clippy::too_many_arguments)]
 pub fn grimmer(
@@ -215,6 +214,7 @@ pub fn grimmer(
 }
 
 //#[pymodule]
+#[cfg(not(tarpaulin_include))]
 #[allow(dead_code)]
 fn scrutipy(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(grimmer, module)?)?;
@@ -273,6 +273,21 @@ pub mod test {
     #[test]
     fn grimmer_scalar_test_2() {
         let val = grimmer_scalar(
+            "1.03",
+            "0.41",
+            40,
+            1,
+            vec![false, false, false],
+            vec!["up_or_down"],
+            5.0,
+            EPS.powf(0.5),
+        );
+        assert!(!val)
+    }
+
+    #[test]
+    fn grimmer_scalar_test_3() {
+        let val = grimmer_scalar(
             "3.10",
             "1.37",
             10,
@@ -286,7 +301,7 @@ pub mod test {
     }
 
     #[test]
-    fn grimmer_scalar_test_3() {
+    fn grimmer_scalar_test_4() {
         let val = grimmer_scalar(
             "2.57",
             "2.57",
@@ -302,7 +317,7 @@ pub mod test {
 
     #[test]
     #[should_panic]
-    fn grimmer_scalar_test_4() {
+    fn grimmer_scalar_test_5() {
         let _ = grimmer_scalar(
             "2.57",
             "2.57",
@@ -318,7 +333,7 @@ pub mod test {
 
     #[test]
     #[should_panic]
-    fn grimmer_scalar_test_5() {
+    fn grimmer_scalar_test_6() {
         let _ = grimmer_scalar(
             "",
             "2.57",
@@ -333,7 +348,7 @@ pub mod test {
 
     #[test]
     #[should_panic]
-    fn grimmer_scalar_test_6() {
+    fn grimmer_scalar_test_7() {
         let _ = grimmer_scalar(
             "2.57",
             "",
@@ -344,6 +359,21 @@ pub mod test {
             5.0,
             EPS.powf(0.5),
         );
+    }
+
+    #[test]
+    fn grimmer_scalar_test_8() {
+        let val = grimmer_scalar(
+            "1.03",
+            "0.41",
+            40,
+            1,
+            vec![true, true, false],
+            vec!["up_or_down"],
+            5.0,
+            EPS.powf(0.5),
+        );
+        assert!(!val)
     }
 
     #[test]
