@@ -4,7 +4,7 @@ pub mod tests {
     use core::f64;
 
     #[test]
-    pub fn grim_scalar_rust_test_1() {
+    fn grim_scalar_rust_test_1() {
         let val = grim_scalar_rust(
             "5.19",
             40,
@@ -18,7 +18,7 @@ pub mod tests {
     }
 
     #[test]
-    pub fn grim_scalar_rust_test_2() {
+    fn grim_scalar_rust_test_2() {
         let val = grim_scalar_rust(
             "5.18",
             40,
@@ -32,7 +32,7 @@ pub mod tests {
     }
 
     #[test]
-    pub fn grim_scalar_rust_test_3() {
+    fn grim_scalar_rust_test_3() {
         let val = grim_scalar_rust(
             "5.19",
             40,
@@ -46,7 +46,7 @@ pub mod tests {
     }
 
     #[test]
-    pub fn grim_scalar_rust_test_4() {
+    fn grim_scalar_rust_test_4() {
         let val = grim_scalar_rust(
             "5.19",
             20,
@@ -60,7 +60,7 @@ pub mod tests {
     }
 
     #[test]
-    pub fn grim_scalar_rust_test_5() {
+    fn grim_scalar_rust_test_5() {
         let val = grim_scalar_rust(
             "5.19",
             20,
@@ -74,7 +74,7 @@ pub mod tests {
     }
 
     #[test]
-    pub fn grim_rust_test_1() {
+    fn grim_rust_test_1() {
         let xs = vec![
             "7.22", "4.74", "5.23", "2.57", "6.77", "2.68", "7.01", "7.38", "3.14", "6.89", "5.00",
             "0.24",
@@ -101,7 +101,7 @@ pub mod tests {
     }
 
     #[test]
-    pub fn grim_rust_test_2() {
+    fn grim_rust_test_2() {
         let xs = vec![
             "7.22", "4.74", "5.23", "2.57", "6.77", "2.68", "7.01", "7.38", "3.14", "6.89", "5.00",
             "0.24",
@@ -130,7 +130,7 @@ pub mod tests {
     }
 
     #[test]
-    pub fn grim_scalar_test_1() {
+    fn grim_scalar_test_1() {
         let input = GRIMInput::Str("5.19".to_string());
         let val = grim_scalar(
             input,
@@ -147,7 +147,7 @@ pub mod tests {
     }
 
     #[test]
-    pub fn grim_scalar_test_2() {
+    fn grim_scalar_test_2() {
         let input = GRIMInput::Num(5.19);
         let val = grim_scalar(
             input,
@@ -165,7 +165,7 @@ pub mod tests {
 
     #[test]
     #[should_panic]
-    pub fn grim_scalar_test_3() {
+    fn grim_scalar_test_3() {
         let input = GRIMInput::Str("not a number".to_string());
         let _ = grim_scalar(
             input,
@@ -182,7 +182,7 @@ pub mod tests {
 
     #[test]
     #[should_panic]
-    pub fn grim_tester_test_1() {
+    fn grim_tester_test_1() {
         let val = grim_scalar_rust(
             "not a number",
             50,

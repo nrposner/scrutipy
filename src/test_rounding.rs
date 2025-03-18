@@ -4,7 +4,7 @@ mod tests {
     use core::f64;
 
     #[test]
-    pub fn round_down_from_test_1() {
+    fn round_down_from_test_1() {
         assert_eq!(
             round_down_from(vec![65.3488492, 645.76543], 4, 5.0, false),
             vec![65.3488, 645.7654]
@@ -12,7 +12,7 @@ mod tests {
     }
 
     #[test]
-    pub fn round_down_from_test_2() {
+    fn round_down_from_test_2() {
         assert_eq!(
             round_down_from(vec![65.34845, 645.76543], 4, 5.0, false),
             vec![65.3484, 645.7654]
@@ -20,7 +20,7 @@ mod tests {
     }
 
     #[test]
-    pub fn round_down_from_test_4() {
+    fn round_down_from_test_4() {
         assert_eq!(
             round_down_from(vec![65.3488492, 645.76543], 4, 5.0, true),
             vec![65.3488, 645.7654]
@@ -28,7 +28,7 @@ mod tests {
     }
 
     #[test]
-    pub fn round_down_from_test_5() {
+    fn round_down_from_test_5() {
         assert_eq!(
             round_down_from(vec![65.34845, 645.76543], 4, 5.0, true),
             vec![65.3484, 645.7654]
@@ -36,7 +36,7 @@ mod tests {
     }
 
     #[test]
-    pub fn round_down_from_test_6() {
+    fn round_down_from_test_6() {
         assert_eq!(
             round_down_from(vec![-65.34845, -645.76543], 4, 5.0, true),
             vec![-65.3484, -645.7654]
@@ -44,7 +44,7 @@ mod tests {
     }
 
     #[test]
-    pub fn round_up_from_test_1() {
+    fn round_up_from_test_1() {
         assert_eq!(
             round_up_from(vec![65.3488492, 645.76543], 4, 5.0, false),
             vec![65.3488, 645.7654]
@@ -52,7 +52,7 @@ mod tests {
     }
 
     #[test]
-    pub fn round_up_from_test_2() {
+    fn round_up_from_test_2() {
         assert_eq!(
             round_up_from(vec![65.34845, 645.76543], 4, 5.0, false),
             vec![65.3485, 645.7654]
@@ -60,7 +60,7 @@ mod tests {
     }
 
     #[test]
-    pub fn round_up_from_test_4() {
+    fn round_up_from_test_4() {
         assert_eq!(
             round_up_from(vec![65.3488492, 645.76543], 4, 5.0, true),
             vec![65.3488, 645.7654]
@@ -68,7 +68,7 @@ mod tests {
     }
 
     #[test]
-    pub fn round_up_from_test_5() {
+    fn round_up_from_test_5() {
         assert_eq!(
             round_up_from(vec![65.34845, 645.76543], 4, 5.0, true),
             vec![65.3485, 645.7654]
@@ -76,7 +76,7 @@ mod tests {
     }
 
     #[test]
-    pub fn round_up_from_test_6() {
+    fn round_up_from_test_6() {
         assert_eq!(
             round_up_from(vec![-65.34845, -645.76543], 4, 5.0, true),
             vec![-65.3485, -645.7654]
@@ -84,19 +84,19 @@ mod tests {
     }
 
     #[test]
-    pub fn round_down_from_scalar_test_1() {
+    fn round_down_from_scalar_test_1() {
         let p10 = 10.0f64.powi(4);
         assert_eq!(round_down_from_scalar(65.3488492, p10, 5.0, false), 65.3488)
     }
 
     #[test]
-    pub fn round_down_from_scalar_test_2() {
+    fn round_down_from_scalar_test_2() {
         let p10 = 10.0f64.powi(4);
         assert_eq!(round_down_from_scalar(65.34845, p10, 5.0, false), 65.3484)
     }
 
     #[test]
-    pub fn round_down_from_test_3() {
+    fn round_down_from_test_3() {
         let xs: Vec<f64> = vec![
             1991.077, 2099.563, 1986.102, 1925.769, 2015.759, 1972.437, 1973.526, 2066.728,
             1947.636, 1920.659,
@@ -124,7 +124,7 @@ mod tests {
     }
 
     #[test]
-    pub fn round_up_from_test_3() {
+    fn round_up_from_test_3() {
         let xs: Vec<f64> = vec![
             1991.077, 2099.563, 1986.102, 1925.769, 2015.759, 1972.437, 1973.526, 2066.728,
             1947.636, 1920.659,
@@ -159,37 +159,37 @@ mod tests {
     }
 
     #[test]
-    pub fn round_trunc_test_1() {
+    fn round_trunc_test_1() {
         let val = round_trunc(5.786487, 3);
         assert_eq!(val, 5.786)
     }
 
     #[test]
-    pub fn round_trunc_test_2() {
+    fn round_trunc_test_2() {
         let val = round_trunc(-5.786487, 3);
         assert_eq!(val, -5.786)
     }
 
     #[test]
-    pub fn anti_trunc_test_1() {
+    fn anti_trunc_test_1() {
         let val = anti_trunc(5.786487);
         assert_eq!(val, 6.0)
     }
 
     #[test]
-    pub fn anti_trunc_test_2() {
+    fn anti_trunc_test_2() {
         let val = anti_trunc(-5.786487);
         assert_eq!(val, -6.0)
     }
 
     #[test]
-    pub fn round_anti_trunc_test_1() {
+    fn round_anti_trunc_test_1() {
         let val = round_anti_trunc(5.4924723, 3);
         assert_eq!(val, 5.493)
     }
 
     #[test]
-    pub fn round_anti_trunc_test_2() {
+    fn round_anti_trunc_test_2() {
         let val = round_anti_trunc(-5.4924723, 3);
         assert_eq!(val, -5.493)
     }

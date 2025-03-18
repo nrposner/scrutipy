@@ -134,7 +134,7 @@ pub mod tests {
     use super::*;
 
     #[test]
-    pub fn sd_binary_mean_test_1() {
+    fn sd_binary_mean_test_1() {
         let res = sd_binary_mean_n(0.3, 30);
         assert_eq!(rust_round(res.unwrap(), 7), 0.4660916) // rounding to the 7th decimal place to match R
                                                            // output
@@ -155,7 +155,7 @@ pub mod tests {
     }
 
     #[test]
-    pub fn sd_binary_groups_test_1() {
+    fn sd_binary_groups_test_1() {
         let res = sd_binary_groups(0, 1);
         assert_eq!(
             SdBinaryError::InsufficientObservationsError,

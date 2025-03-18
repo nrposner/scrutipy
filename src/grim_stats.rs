@@ -44,79 +44,79 @@ pub mod tests {
     use super::*;
 
     #[test]
-    pub fn grim_probability_test_1() {
+    fn grim_probability_test_1() {
         let val = grim_probability("8.2", 6, 1, true);
         assert_eq!(val, 0.994)
     }
 
     #[test]
-    pub fn grim_probability_test_2() {
+    fn grim_probability_test_2() {
         let val = grim_probability("6.7", 9, 1, false);
         assert_eq!(val, 0.1)
     }
 
     #[test]
-    pub fn grim_probability_test_3() {
+    fn grim_probability_test_3() {
         let val = grim_probability("3.333", 3, 3, false);
         assert_eq!(val, 0.991)
     }
 
     #[test]
-    pub fn grim_probability_test_4() {
+    fn grim_probability_test_4() {
         let val = grim_probability("60.7", 9, 7, false);
         assert_eq!(val, 0.0)
     }
 
     #[test]
-    pub fn grim_ratio_test_1() {
+    fn grim_ratio_test_1() {
         let val = grim_ratio("8.2", 6, 1, true);
         assert_eq!(val, 0.994)
     }
 
     #[test]
-    pub fn grim_ratio_test_2() {
+    fn grim_ratio_test_2() {
         let val = grim_ratio("6.7", 9, 1, false);
         assert_eq!(val, 0.1)
     }
 
     #[test]
-    pub fn grim_ratio_test_3() {
+    fn grim_ratio_test_3() {
         let val = grim_ratio("3.333", 3, 3, false);
         assert_eq!(val, 0.991)
     }
 
     #[test]
-    pub fn grim_ratio_test_4() {
+    fn grim_ratio_test_4() {
         let val = grim_ratio("60.7", 9, 7, false);
         assert_eq!(val, -5.3)
     }
 
     #[test]
-    pub fn grim_total_test_1() {
+    fn grim_total_test_1() {
         let val = grim_total("8.2", 6, 1, true);
         assert_eq!(val, 994)
     }
 
     #[test]
-    pub fn grim_total_test_2() {
+    fn grim_total_test_2() {
         let val = grim_total("6.7", 9, 1, false);
         assert_eq!(val, 1)
     }
 
     #[test]
-    pub fn grim_total_test_3() {
+    fn grim_total_test_3() {
         let val = grim_total("3.333", 3, 3, false);
         assert_eq!(val, 991)
     }
 
     #[test]
-    pub fn grim_total_test_4() {
+    fn grim_total_test_4() {
         let val = grim_total("60.7", 9, 7, false);
         assert_eq!(val, -53)
     }
 
     #[test]
-    pub fn grim_probability_vector_test_1() {
+    fn grim_probability_vector_test_1() {
         let xs = [
             "7.22", "4.74", "5.23", "2.57", "6.77", "2.68", "7.01", "7.38", "3.14", "6.89", "5.00",
             "0.24",
