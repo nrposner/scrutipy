@@ -19,6 +19,23 @@ write.csv(pigs1,file="mysavefile.csv")
 ```
 
 ```{r}
+grim(pigs1$x, pigs1$n, percent = TRUE)
+```
+
+```{r}
+grim("5.19", 20, 1, show_rec = TRUE, rounding = "up_and_down")
+```
+```{r}
+round_anti_trunc(-5.4924723, 3)
+```
+
+
+```{r}
+reconstruct_rounded_numbers_scalar(2.9876, 3, rounding = "up_or_down_from", symmetric = FALSE)
+```
+
+
+```{r}
 reround(c(c(c(2.9876, 8.78964), 6.98767)), 3)
 
 
@@ -103,7 +120,12 @@ grimmer("2.57", "2.57", 30, 1, TRUE, "up_or_down", 5, FALSE)
 
 
 ```{r}
-reconstruct_rounded_numbers(2.9876, 3, "up_or_down", 5, FALSE)
+reconstruct_rounded_numbers(2.9856, 3, "anti_trunc", 5, TRUE)
+```
+
+
+```{r}
+round_down_from(65.34845, 4, threshold = 5, symmetric=TRUE)
 ```
 
 
@@ -201,7 +223,7 @@ grim_scalar("5.19", 20, 1, FALSE, TRUE, "up_or_down", 5, FALSE, .Machine$double.
 
 
 
-```{r}
+```{r}/pigs1
 
 # # Full example inputs:
 # x         <- "5.19"
