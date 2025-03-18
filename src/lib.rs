@@ -1,10 +1,10 @@
 pub mod grim;
 pub mod grim_map;
 pub mod grim_stats;
-pub mod grim_tests;
+pub mod test_grim;
 pub mod grimmer;
 pub mod rounding;
-pub mod rounding_tests;
+pub mod test_rounding;
 pub mod sd_binary;
 pub mod utils;
 pub mod test_utils;
