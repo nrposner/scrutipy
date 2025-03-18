@@ -7,6 +7,7 @@ pub mod rounding;
 pub mod rounding_tests;
 pub mod sd_binary;
 pub mod utils;
+pub mod test_utils;
 
 #[allow(unused_imports)]
 use utils::*;
