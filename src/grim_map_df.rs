@@ -1,3 +1,5 @@
+use std::f64;
+
 use polars::series::Series;
 use polars::datatypes::AnyValue;
 use polars::{frame::DataFrame, prelude::DataType};
@@ -5,6 +7,8 @@ use pyo3::{pyfunction, FromPyObject};
 use pyo3_polars::PyDataFrame;
 use num::NumCast;
 use thiserror::Error;
+
+use crate::grim::grim_rust;
 /// We want to give grim_map the ability to operate on dataframes passed in from python
 /// Let's pseudocode out what we want to do 
 ///
@@ -54,7 +58,7 @@ pub enum ColumnInput {
 
 #[allow(unused_variables)]
 #[pyfunction(signature = (pydf, x_col=ColumnInput::Index(0), n_col=ColumnInput::Index(1)))]
-pub fn grim_map_df(pydf: PyDataFrame, x_col: ColumnInput, n_col: ColumnInput) {
+pub fn grim_map_df(pydf: PyDataFrame, x_col: ColumnInput, n_col: ColumnInput) -> (Vec<bool>, Option<Vec<usize>>){
     let df: DataFrame = pydf.into();
 
     let xs: &Series = match x_col {
@@ -98,6 +102,11 @@ pub fn grim_map_df(pydf: PyDataFrame, x_col: ColumnInput, n_col: ColumnInput) {
         _ => Err("Input xs column is neither a string nor numeric type"),
     };
 
+    let xs_vec = match xs_result {
+        Ok(xs) => xs,
+        Err(_) => panic!(),
+    };
+
     let ns_result = match ns.dtype() {
         DataType::String => Ok(coerce_string_to_u32(ns.clone())),//Ok(ns.iter().map(|n| n.to_string()).collect::<Vec<String>>()),
         DataType::UInt8
@@ -123,26 +132,73 @@ pub fn grim_map_df(pydf: PyDataFrame, x_col: ColumnInput, n_col: ColumnInput) {
                 _ => Err(NsParsingError::NotAnInteger(val.to_string().parse().unwrap_or(f64::NAN))),
             })
             .collect::<Vec<Result<u32, NsParsingError>>>()}),
-
-
-        //ns.iter().map(|n| coerce_to_u32(n)).collect::<Vec<Result<u32, NsParsingError>>>(),
-        //Ok(ns.iter().map(|n| coerce_numeric_to_u32_scalar(n) ).collect::<Vec<u32>>()),
         _ => Err(NsParsingError::NotNumeric),
 
     };
 
 
-    //check to make sure that n is not negative before coercing to u32 
-    //check to make sure that String ns can be coerced into u32s 
+    let ns_vec = match ns_result {
+        Err(_) => panic!(),
+        Ok(vs) => vs,
+    };
+
+    // think more clearly about what we want this design to do:
+    //  What do we want to do if one of these rows has an error? Do we want to skip over it and
+    //  just do the others? Yes, but we also want to preserve the index of the erroneous row so
+    //  that we can communicate that to the user 
+    //  above, we're just going to pull out the result and pass up the error (currently a panic) to
+    //  the user if it just failed completely
+    //
+    //  And now that it's in Vec<Result> form, we use it down below. If the internal result
+    //  unwraps, then we run grim_map, or possibly just run grim_rust directly here 
+    //  otherwise, we pass an error? Or we pass nothing, but preserve the error index?? 
+    //
+    //  In the inner loop, let's append the index into a counter vector, which we'll later pass
+    //  back as an Option<Vec<usize>> 
 
 
+    // now that we have these as vectors of Strings for xs and vectors of Results of u32s, we can
+    // pass them into grim map
+    // we may need to extend for vectors of items and so on, but for the time being we'll protoype
+    // with just this
+    
+    let xs_temp: Vec<&str> = xs_vec.iter().map(|s| &**s).collect();
+
+    let mut xs: Vec<&str> = Vec::new();
+    let mut ns: Vec<u32> = Vec::new();
+    let mut ns_err_inds: Vec<usize> = Vec::new();
+
+    for (i, (n_result, x)) in ns_vec.iter().zip(xs_temp.iter()).enumerate() {
+        match n_result {
+            Ok(u) => {
+                ns.push(*u);
+                xs.push(*x)
+            },
+            Err(_) => ns_err_inds.push(i)
+        }
+    }
+
+
+    let res = grim_rust(xs, ns.clone(), vec![false; 3], vec![1; ns.len()], vec!["up_or_down"], 5.0, f64::EPSILON.powf(0.5));
+
+    let err_output: Option<Vec<usize>> = match ns_err_inds.len() {
+        0 => Some(ns_err_inds),
+        _ => None,
+    };
+
+    (res, err_output)
+
+    // let's even add on to this by zipping in xs, so we also just collect the xs that are part of
+    // valid rows
+
+    //xs.iter().zip(ns_vec.iter()).map(|(x, n)| {
+    //    match n.unwrap() {
+    //        Ok(num) => grim_map()
+    //    }
+    //})
 
     // for the numeric types, coerce into a function that turns them into strings, but also note
     // that some important trailing zeros may have been lost 
-
-
-    // later work out a method without cloning
-
 
 
 
