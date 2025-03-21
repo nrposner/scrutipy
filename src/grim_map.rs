@@ -22,8 +22,8 @@ use std::error::Error;
 // far this is only used in the testing section
 // unless we end up using this struct more in the transition between rust and python dataframes,
 // move it to the testing section in order to not have something so ugly
-#[derive(Debug, Deserialize)]
-struct Record {
+#[derive(Debug, Deserialize, Clone)]
+pub struct Record {
     #[serde(rename = "")]
     _index: usize,
     #[serde(rename = "x")]

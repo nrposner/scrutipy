@@ -8,6 +8,7 @@ pub mod test_rounding;
 pub mod sd_binary;
 pub mod utils;
 pub mod test_utils;
+pub mod grim_map_df;
 
 #[allow(unused_imports)]
 use utils::*;
