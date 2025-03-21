@@ -2,7 +2,6 @@ use polars::series::Series;
 use polars::datatypes::AnyValue;
 use polars::{frame::DataFrame, prelude::DataType};
 use pyo3::{pyfunction, FromPyObject};
-//use pyo3::Python;
 use pyo3_polars::PyDataFrame;
 use num::NumCast;
 use thiserror::Error;
@@ -176,22 +175,6 @@ fn coerce_string_to_u32(s: Series) -> Vec<Result<u32, NsParsingError>>{
             .map_err(|_| NsParsingError::NotNumeric(s))
     })
     .collect::<Vec<Result<u32, NsParsingError>>>()
-}
-
-fn _parse_numeric_series(s: &Series) -> Vec<Result<u32, NsParsingError>> {
-    s.iter()
-        .map(|val| {
-            match val {
-                AnyValue::Int64(i) => coerce_to_u32(i),
-                AnyValue::Int32(i) => coerce_to_u32(i),
-                AnyValue::UInt64(u) => coerce_to_u32(u),
-                AnyValue::UInt32(u) => coerce_to_u32(u),
-                AnyValue::Float64(f) => coerce_to_u32(f),
-                AnyValue::Float32(f) => coerce_to_u32(f),
-                _ => Err(NsParsingError::NotAnInteger(val.to_string().parse().unwrap_or(f64::NAN))),
-            }
-        })
-        .collect()
 }
 
 fn coerce_to_u32<T: Copy + NumCast + PartialOrd + std::fmt::Debug>(value: T) -> Result<u32, NsParsingError> {
