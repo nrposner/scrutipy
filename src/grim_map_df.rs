@@ -1,4 +1,4 @@
-use std::f64;
+use core::f64;
 use polars::series::Series;
 use polars::datatypes::AnyValue;
 use polars::{frame::DataFrame, prelude::DataType};
@@ -46,20 +46,21 @@ pub enum ColumnInput {
     Index(usize),
 }
 
-
 #[allow(unused_variables)]
-#[pyfunction(signature = (pydf, x_col=ColumnInput::Index(0), n_col=ColumnInput::Index(1)))]
-pub fn grim_map_df(pydf: PyDataFrame, x_col: ColumnInput, n_col: ColumnInput) -> (Vec<bool>, Option<Vec<usize>>){
+#[allow(clippy::too_many_arguments)]
+#[pyfunction(signature = (pydf, x_col=ColumnInput::Index(0), n_col=ColumnInput::Index(1), bool_params = vec![false, false, false], items = None, rounding = vec!["up_or_down".to_string()], threshold = 5.0, tolerance = f64::EPSILON.powf(0.5)))]
+pub fn grim_map_df(pydf: PyDataFrame, x_col: ColumnInput, n_col: ColumnInput, bool_params: Vec<bool>, items: Option<Vec<u32>>, rounding: Vec<String>, threshold: f64, tolerance: f64) -> (Vec<bool>, Option<Vec<usize>>){
     let df: DataFrame = pydf.into();
+    let rounds: Vec<&str> = rounding.iter().map(|s| &**s).collect(); 
 
     let xs: &Series = match x_col {
-        ColumnInput::Name(name) => df.column(&name).unwrap().as_series().unwrap(), //df[&*name].clone().get(),
-        ColumnInput::Index(ind) => df.get_columns()[ind].as_series().unwrap(), //df[ind].clone().get(),
+        ColumnInput::Name(name) => df.column(&name).unwrap().as_series().unwrap(),
+        ColumnInput::Index(ind) => df.get_columns()[ind].as_series().unwrap(), 
     };
 
     let ns: &Series= match n_col {
-        ColumnInput::Name(name) => df.column(&name).unwrap().as_series().unwrap(),//df[&*name].clone(),
-        ColumnInput::Index(ind) => df.get_columns()[ind].as_series().unwrap(),//df[ind].clone(),
+        ColumnInput::Name(name) => df.column(&name).unwrap().as_series().unwrap(),
+        ColumnInput::Index(ind) => df.get_columns()[ind].as_series().unwrap(),
     };
 
     let xs_result = match xs.dtype() {
@@ -83,7 +84,7 @@ pub fn grim_map_df(pydf: PyDataFrame, x_col: ColumnInput, n_col: ColumnInput) ->
     };
 
     let ns_result = match ns.dtype() {
-        DataType::String => Ok(coerce_string_to_u32(ns.clone())),//Ok(ns.iter().map(|n| n.to_string()).collect::<Vec<String>>()),
+        DataType::String => Ok(coerce_string_to_u32(ns.clone())),
         DataType::UInt8
             | DataType::UInt16
             | DataType::UInt32
@@ -132,7 +133,12 @@ pub fn grim_map_df(pydf: PyDataFrame, x_col: ColumnInput, n_col: ColumnInput) ->
         }
     }
 
-    let res = grim_rust(xs, ns.clone(), vec![false; 3], vec![1; ns.len()], vec!["up_or_down"], 5.0, f64::EPSILON.powf(0.5));
+    let revised_items = match items {
+        None => vec![1; xs.len()],
+        Some(i) => i,
+    };
+
+    let res = grim_rust(xs, ns.clone(), bool_params, revised_items, rounds, threshold, tolerance);
 
     let err_output: Option<Vec<usize>> = match ns_err_inds.len() {
         0 => Some(ns_err_inds),
