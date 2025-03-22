@@ -2,7 +2,8 @@ use core::f64;
 use polars::series::Series;
 use polars::datatypes::AnyValue;
 use polars::{frame::DataFrame, prelude::DataType};
-use pyo3::{pyfunction, FromPyObject};
+use pyo3::types::{PyAnyMethods, PyString};
+use pyo3::{pyfunction, FromPyObject, Python};
 use pyo3_polars::PyDataFrame;
 use num::NumCast;
 use thiserror::Error;
@@ -39,28 +40,39 @@ use crate::grim::grim_rust;
 ///     record to simply not be accepted, and alert the user to that fact. 
 /// The grim_map_df can take either column indices or column names as inputs when selecting the x
 /// and n columns. This enum allows for 
-#[derive(FromPyObject)]
+#[derive(FromPyObject, PartialEq)]
 #[allow(dead_code)]
 pub enum ColumnInput {
-    Name(String),
     Index(usize),
+    Name(String),
+    Default(usize),
 }
 
 #[allow(unused_variables)]
 #[allow(clippy::too_many_arguments)]
 #[pyfunction(signature = (pydf, x_col=ColumnInput::Index(0), n_col=ColumnInput::Index(1), bool_params = vec![false, false, false], items = None, rounding = vec!["up_or_down".to_string()], threshold = 5.0, tolerance = f64::EPSILON.powf(0.5)))]
-pub fn grim_map_df(pydf: PyDataFrame, x_col: ColumnInput, n_col: ColumnInput, bool_params: Vec<bool>, items: Option<Vec<u32>>, rounding: Vec<String>, threshold: f64, tolerance: f64) -> (Vec<bool>, Option<Vec<usize>>){
+pub fn grim_map_df(py: Python, pydf: PyDataFrame, x_col: ColumnInput, n_col: ColumnInput, bool_params: Vec<bool>, items: Option<Vec<u32>>, rounding: Vec<String>, threshold: f64, tolerance: f64) -> (Vec<bool>, Option<Vec<usize>>){
     let df: DataFrame = pydf.into();
     let rounds: Vec<&str> = rounding.iter().map(|s| &**s).collect(); 
+
+    let warnings = py.import("warnings").unwrap();
+    if (x_col == ColumnInput::Index(0)) & (n_col == ColumnInput::Index(1)) {
+        warnings.call_method1(
+            "warn",
+            (PyString::new(py, "The columns `x_col` and `n_col` haven't been changed from their defaults. Please ensure that the first and second columns contain the xs and ns respectively. To silence this warning, set `silence_default_warning = True`."),),
+        ).unwrap();
+    };
 
     let xs: &Series = match x_col {
         ColumnInput::Name(name) => df.column(&name).unwrap().as_series().unwrap(),
         ColumnInput::Index(ind) => df.get_columns()[ind].as_series().unwrap(), 
+        ColumnInput::Default(ind) => df.get_columns()[ind].as_series().unwrap(),
     };
 
     let ns: &Series= match n_col {
         ColumnInput::Name(name) => df.column(&name).unwrap().as_series().unwrap(),
         ColumnInput::Index(ind) => df.get_columns()[ind].as_series().unwrap(),
+        ColumnInput::Default(ind) => df.get_columns()[ind].as_series().unwrap(),
     };
 
     let xs_result = match xs.dtype() {
@@ -145,7 +157,7 @@ pub fn grim_map_df(pydf: PyDataFrame, x_col: ColumnInput, n_col: ColumnInput, bo
         _ => None,
     };
 
-    (res, err_output)
+    (res, err_output) // if someone tries to unpack this and it's a None, what happens?
 }
 
 #[derive(Debug, Error, PartialEq)]
