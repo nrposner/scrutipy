@@ -41,25 +41,51 @@ use crate::grim::grim_rust;
 /// The grim_map_df can take either column indices or column names as inputs when selecting the x
 /// and n columns. This enum allows for 
 #[derive(FromPyObject, PartialEq)]
-#[allow(dead_code)]
 pub enum ColumnInput {
     Index(usize),
     Name(String),
     Default(usize),
 }
 
-#[allow(unused_variables)]
+/// Implements grim_map over the columns of a Python dataframe. 
+///
+/// Takes the provided dataframe as well as inputs indicating the columns to be used as xs and ns.
+/// If one or more columns are not indicated, it will take the first column as xs and the second
+/// column as ns by default. All other grim_map arguments can be provided as keyword arguments.
+/// default respectively. 
 #[allow(clippy::too_many_arguments)]
-#[pyfunction(signature = (pydf, x_col=ColumnInput::Index(0), n_col=ColumnInput::Index(1), bool_params = vec![false, false, false], items = None, rounding = vec!["up_or_down".to_string()], threshold = 5.0, tolerance = f64::EPSILON.powf(0.5)))]
-pub fn grim_map_df(py: Python, pydf: PyDataFrame, x_col: ColumnInput, n_col: ColumnInput, bool_params: Vec<bool>, items: Option<Vec<u32>>, rounding: Vec<String>, threshold: f64, tolerance: f64) -> (Vec<bool>, Option<Vec<usize>>){
+#[pyfunction(signature = (
+    pydf, 
+    x_col=ColumnInput::Index(0), 
+    n_col=ColumnInput::Index(1), 
+    bool_params = vec![false, false, false], 
+    items = None, 
+    rounding = vec!["up_or_down".to_string()], 
+    threshold = 5.0, 
+    tolerance = f64::EPSILON.powf(0.5),
+    silence_default_warning = false,
+))]
+pub fn grim_map_df(
+    py: Python, 
+    pydf: PyDataFrame, 
+    x_col: ColumnInput, 
+    n_col: ColumnInput, 
+    bool_params: Vec<bool>, 
+    items: Option<Vec<u32>>, 
+    rounding: Vec<String>, 
+    threshold: f64, 
+    tolerance: f64,
+    silence_default_warning: bool,
+) -> (Vec<bool>, Option<Vec<usize>>)
+{
     let df: DataFrame = pydf.into();
     let rounds: Vec<&str> = rounding.iter().map(|s| &**s).collect(); 
 
     let warnings = py.import("warnings").unwrap();
-    if (x_col == ColumnInput::Index(0)) & (n_col == ColumnInput::Index(1)) {
+    if (x_col == ColumnInput::Index(0)) & (n_col == ColumnInput::Index(1)) & !silence_default_warning {
         warnings.call_method1(
             "warn",
-            (PyString::new(py, "The columns `x_col` and `n_col` haven't been changed from their defaults. Please ensure that the first and second columns contain the xs and ns respectively. To silence this warning, set `silence_default_warning = True`."),),
+            (PyString::new(py, "The columns `x_col` and `n_col` haven't been changed from their defaults. \n Please ensure that the first and second columns contain the xs and ns respectively. \n To silence this warning, set `silence_default_warning = True`."),),
         ).unwrap();
     };
 
@@ -158,6 +184,14 @@ pub fn grim_map_df(py: Python, pydf: PyDataFrame, x_col: ColumnInput, n_col: Col
     };
 
     (res, err_output) // if someone tries to unpack this and it's a None, what happens?
+    // We also need to get this function to return some error type? Unless we're comfortable
+    // panicking all over the place 
+}
+
+#[derive(Debug, Error)]
+pub enum GrimMapDfError {
+    #[error("bla bla")]
+    BlaBla(),
 }
 
 #[derive(Debug, Error, PartialEq)]
