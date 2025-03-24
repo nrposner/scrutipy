@@ -2,8 +2,9 @@ use core::f64;
 use polars::series::Series;
 use polars::datatypes::AnyValue;
 use polars::{frame::DataFrame, prelude::DataType};
+use pyo3::exceptions::PyTypeError;
 use pyo3::types::{PyAnyMethods, PyString};
-use pyo3::{pyfunction, FromPyObject, Python};
+use pyo3::{pyfunction, FromPyObject, PyResult, Python};
 use pyo3_polars::PyDataFrame;
 use num::NumCast;
 use thiserror::Error;
@@ -64,6 +65,7 @@ pub enum ColumnInput {
     threshold = 5.0, 
     tolerance = f64::EPSILON.powf(0.5),
     silence_default_warning = false,
+    silence_numeric_warning = false,
 ))]
 pub fn grim_map_df(
     py: Python, 
@@ -76,7 +78,8 @@ pub fn grim_map_df(
     threshold: f64, 
     tolerance: f64,
     silence_default_warning: bool,
-) -> (Vec<bool>, Option<Vec<usize>>)
+    silence_numeric_warning: bool,
+) -> PyResult<(Vec<bool>, Option<Vec<usize>>)>
 {
     let df: DataFrame = pydf.into();
     let rounds: Vec<&str> = rounding.iter().map(|s| &**s).collect(); 
@@ -116,9 +119,12 @@ pub fn grim_map_df(
         _ => Err("Input xs column is neither a string nor numeric type"),
     };
 
+    // if the data type of xs is neither a string nor a numeric type which we could plausibly
+    // convert into a string (albeit while possibly losing some trailing zeros) we return early
+    // with an error, as there's nowhere for the program to progress from here. 
     let xs_vec = match xs_result {
         Ok(xs) => xs,
-        Err(_) => panic!(),
+        Err(_) => return Err(PyTypeError::new_err("The x_col column is composed of neither strings nor numeric types. Please check the input types and the documentation.")),
     };
 
     let ns_result = match ns.dtype() {
@@ -131,6 +137,12 @@ pub fn grim_map_df(
             | DataType::Int16
             | DataType::Int32
             | DataType::Int64 => Ok({
+                if !silence_numeric_warning {
+                    warnings.call_method1(
+                        "warn", 
+                        (PyString::new(py, "The column `x_col` is made up of numeric types instead of strings. \n Understand that you may be losing trailing zeros by using a purely numeric type. \n To silence this warning, set `silence_numeric_warning = True`."),),
+                    ).unwrap();
+                }
                 ns.iter()
                     .map(|val| match val {
                     AnyValue::UInt8(n) => coerce_to_u32(n),
@@ -150,8 +162,10 @@ pub fn grim_map_df(
 
     };
 
+    // if the ns column is made up of neither strings nor any plausible numeric type, we return
+    // early with an error. There is nowhere for the program to progress from here. 
     let ns_vec = match ns_result {
-        Err(_) => panic!(),
+        Err(_) => return Err(PyTypeError::new_err("The n_col column is composed of neither strings nor numeric types. Please check the input types and the documentation.")),
         Ok(vs) => vs,
     };
 
@@ -162,15 +176,25 @@ pub fn grim_map_df(
     let mut ns_err_inds: Vec<usize> = Vec::new();
 
     for (i, (n_result, x)) in ns_vec.iter().zip(xs_temp.iter()).enumerate() {
-        match n_result {
-            Ok(u) => {
-                ns.push(*u);
-                xs.push(*x)
-            },
-            Err(_) => ns_err_inds.push(i)
-        }
+
+        if let Ok(u) = n_result {
+            ns.push(*u);
+            xs.push(*x);
+        } else {
+            ns_err_inds.push(i)
+        };
+        //match n_result {
+        //    Ok(u) => {
+        //        ns.push(*u);
+        //        xs.push(*x)
+        //    },
+        //    Err(_) => ns_err_inds.push(i)
+        //}
     }
 
+    // since we can't set a default for items which is dependent on the size of another variable
+    // known at runtime, we wait until now to turn the default option into a vector of 1s the same
+    // length as the number of valid counts 
     let revised_items = match items {
         None => vec![1; xs.len()],
         Some(i) => i,
@@ -178,14 +202,14 @@ pub fn grim_map_df(
 
     let res = grim_rust(xs, ns.clone(), bool_params, revised_items, rounds, threshold, tolerance);
 
+    // if the length of ns_err_inds is 0, ie if no errors occurred, our error return is Option<None>.
+    // Otherwise, our error return is Option<ns_err_inds>
     let err_output: Option<Vec<usize>> = match ns_err_inds.len() {
-        0 => Some(ns_err_inds),
-        _ => None,
+        0 => None,
+        _ => Some(ns_err_inds),
     };
 
-    (res, err_output) // if someone tries to unpack this and it's a None, what happens?
-    // We also need to get this function to return some error type? Unless we're comfortable
-    // panicking all over the place 
+    Ok((res, err_output)) 
 }
 
 #[derive(Debug, Error)]
