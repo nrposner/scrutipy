@@ -1,4 +1,5 @@
 pub mod grim;
+pub mod pyfunctions;
 pub mod grim_map;
 pub mod grim_stats;
 pub mod test_grim;

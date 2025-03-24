@@ -1,8 +1,5 @@
-use crate::grimmer::grimmer;
 use crate::utils::{decimal_places_scalar, dustify, reround};
-use pyo3::prelude::Bound;
-use pyo3::prelude::*;
-use pyo3::{pyfunction, wrap_pyfunction, FromPyObject};
+use pyo3::{pyfunction, FromPyObject};
 
 #[derive(FromPyObject)]
 pub enum GRIMInput {
@@ -207,10 +204,3 @@ pub fn grim_tester(grim_result: Result<GrimReturn, std::num::ParseFloatError>, e
     };
 }
 
-#[cfg(not(tarpaulin_include))]
-#[pymodule(name = "scrutipy_rs")]
-fn scrutipy_rs(module: &Bound<'_, PyModule>) -> PyResult<()> {
-    module.add_function(wrap_pyfunction!(grim_scalar, module)?)?;
-    module.add_function(wrap_pyfunction!(grimmer, module)?)?;
-    Ok(())
-}
