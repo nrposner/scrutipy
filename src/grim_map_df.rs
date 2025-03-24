@@ -72,7 +72,7 @@ pub fn grim_map_df(
     pydf: PyDataFrame, 
     x_col: ColumnInput, 
     n_col: ColumnInput, 
-    bool_params: Vec<bool>, 
+    bool_params: Vec<bool>, // contains percent, show_rec, symmetric
     items: Option<Vec<u32>>, 
     rounding: Vec<String>, 
     threshold: f64, 
@@ -130,21 +130,21 @@ pub fn grim_map_df(
     let ns_result = match ns.dtype() {
         DataType::String => Ok(coerce_string_to_u32(ns.clone())),
         DataType::UInt8
-            | DataType::UInt16
-            | DataType::UInt32
-            | DataType::UInt64
-            | DataType::Int8
-            | DataType::Int16
-            | DataType::Int32
-            | DataType::Int64 => Ok({
-                if !silence_numeric_warning {
-                    warnings.call_method1(
-                        "warn", 
-                        (PyString::new(py, "The column `x_col` is made up of numeric types instead of strings. \n Understand that you may be losing trailing zeros by using a purely numeric type. \n To silence this warning, set `silence_numeric_warning = True`."),),
-                    ).unwrap();
-                }
-                ns.iter()
-                    .map(|val| match val {
+        | DataType::UInt16
+        | DataType::UInt32
+        | DataType::UInt64
+        | DataType::Int8
+        | DataType::Int16
+        | DataType::Int32
+        | DataType::Int64 => Ok({
+            if !silence_numeric_warning {
+                warnings.call_method1(
+                    "warn", 
+                    (PyString::new(py, "The column `x_col` is made up of numeric types instead of strings. \n Understand that you may be losing trailing zeros by using a purely numeric type. \n To silence this warning, set `silence_numeric_warning = True`."),),
+                ).unwrap();
+            }
+            ns.iter()
+                .map(|val| match val {
                     AnyValue::UInt8(n) => coerce_to_u32(n),
                     AnyValue::UInt16(n) => coerce_to_u32(n),
                     AnyValue::UInt32(n) => coerce_to_u32(n),
@@ -155,10 +155,11 @@ pub fn grim_map_df(
                     AnyValue::Int64(n) => coerce_to_u32(n),
                     AnyValue::Float32(f) => coerce_to_u32(f),
                     AnyValue::Float64(f) => coerce_to_u32(f),
-                _ => Err(NsParsingError::NotAnInteger(val.to_string().parse().unwrap_or(f64::NAN))),
-            })
-            .collect::<Vec<Result<u32, NsParsingError>>>()}),
-        _ => Err(NsParsingError::NotNumeric),
+                    _ => Err(NsParsingError::NotAnInteger(val.to_string().parse().unwrap_or(f64::NAN))),
+                })
+                .collect::<Vec<Result<u32, NsParsingError>>>()
+            }),
+            _ => Err(NsParsingError::NotNumeric),
 
     };
 

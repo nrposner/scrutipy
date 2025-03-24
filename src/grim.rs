@@ -1,3 +1,4 @@
+use crate::grimmer::grimmer;
 use crate::utils::{decimal_places_scalar, dustify, reround};
 use pyo3::prelude::Bound;
 use pyo3::prelude::*;
@@ -210,5 +211,6 @@ pub fn grim_tester(grim_result: Result<GrimReturn, std::num::ParseFloatError>, e
 #[pymodule(name = "scrutipy_rs")]
 fn scrutipy_rs(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(grim_scalar, module)?)?;
+    module.add_function(wrap_pyfunction!(grimmer, module)?)?;
     Ok(())
 }

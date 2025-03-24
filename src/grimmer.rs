@@ -4,9 +4,7 @@ use crate::decimal_places_scalar;
 use crate::grim::{grim_scalar_rust, is_near, GrimReturn};
 use crate::rounding::rust_round;
 use crate::utils::{dustify, reround};
-use pyo3::prelude::Bound;
-use pyo3::prelude::*;
-use pyo3::{pyfunction, wrap_pyfunction};
+use pyo3::pyfunction;
 //  146-148, 150, 169-171, 173, 180, 186, 198-201, 204-211, 217-219
 const EPS: f64 = f64::EPSILON;
 
@@ -214,12 +212,12 @@ pub fn grimmer(
 }
 
 //#[pymodule]
-#[cfg(not(tarpaulin_include))]
-#[allow(dead_code)]
-fn scrutipy(module: &Bound<'_, PyModule>) -> PyResult<()> {
-    module.add_function(wrap_pyfunction!(grimmer, module)?)?;
-    Ok(())
-}
+// #[cfg(not(tarpaulin_include))]
+// #[allow(dead_code)]
+// fn scrutipy(module: &Bound<'_, PyModule>) -> PyResult<()> {
+    // module.add_function(wrap_pyfunction!(grimmer, module)?)?;
+    // Ok(())
+// }
 
 #[allow(clippy::too_many_arguments)]
 pub fn grimmer_rust(
