@@ -3,6 +3,7 @@ from scrutipy import grim_scalar
 from scrutipy import grim_map_df
 import pandas as pd 
 import polars as pl
+from scrutipy import grim_map
 
 def test_grim_1():
     result = grim_scalar("5.19", 40)
@@ -33,3 +34,22 @@ def test_grim_map_4():
     bools, errors = grim_map_df(df, 1, 2, percent = True, silence_numeric_warning = True) 
     assert bools == list([False, False, True, False, False, False])
 
+def test_grim_map_pd_1():
+    df = pd.read_csv("data/pigs1.csv")
+    bools, errors = grim_map(df, 1, 2, silence_numeric_warning = True)
+    assert bools == list([True, False, False, False, False, True, False, True, False, False, True, False])
+
+def test_grim_map_pd_2():
+    df = pd.read_csv("data/pigs1.csv")
+    bools, errors = grim_map(df, 1, 2, percent = True, silence_numeric_warning = True)
+    assert bools == list([False, False, False, False, False, False, False, False, False, False, False, False])
+
+def test_grim_map_pd_3():
+    df = pd.read_csv("data/pigs2.csv")
+    bools, errors = grim_map(df, 1, 2, percent = False, silence_numeric_warning = True) 
+    assert bools == list([True, True, True, True, True, True])
+
+def test_grim_map_pd_4():
+    df = pd.read_csv("data/pigs2.csv")
+    bools, errors = grim_map(df, 1, 2, percent = True, silence_numeric_warning = True) 
+    assert bools == list([False, False, True, False, False, False])
