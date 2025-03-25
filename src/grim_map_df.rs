@@ -55,6 +55,10 @@ pub enum ColumnInput {
 /// column as ns by default. All other grim_map arguments can be provided as keyword arguments.
 /// default respectively. 
 #[allow(clippy::too_many_arguments)]
+#[cfg(not(tarpaulin_include))] // since this function is only meant to be called from Python and
+// requires certain PyO3 types which are tedious to recreate within Rust, I find it acceptable to
+// exclude this function from internal Rust testing in exchange for rigorous testing on the Python
+// end, reflecting actual user experience 
 #[pyfunction(signature = (
     pydf, 
     x_col=ColumnInput::Index(0), 

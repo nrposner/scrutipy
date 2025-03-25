@@ -32,7 +32,7 @@ pub struct Record {
     _count: u32,
 }
 
-fn _load_csv(path: &str) -> Result<Vec<Record>, Box<dyn Error>> {
+pub fn _load_csv(path: &str) -> Result<Vec<Record>, Box<dyn Error>> {
     let mut rdr = csv::Reader::from_path(path)?;
     let mut records = Vec::new();
     for result in rdr.deserialize() {
