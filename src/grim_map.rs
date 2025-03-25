@@ -1,12 +1,13 @@
- use crate::grim_map_df::{grim_map_df, ColumnInput};
- use core::f64;
- use pyo3::types::PyAnyMethods;
- use pyo3::{pyfunction, PyResult, Python, PyAny};
- use pyo3_polars::PyDataFrame;
- use pyo3::prelude::*;
+use crate::grim_map_df::{grim_map_df, ColumnInput};
+use core::f64;
+use pyo3::types::PyAnyMethods;
+use pyo3::{pyfunction, PyResult, Python, PyAny};
+use pyo3_polars::PyDataFrame;
+use pyo3::prelude::*;
+use pyo3::exceptions::PyImportError;
  
- /// Transforms a pandas dataframe to polars and runs grim_map_df 
- #[pyfunction(signature = (
+/// Transforms a pandas dataframe to polars and runs grim_map_df 
+#[pyfunction(signature = (
      pandas_df, 
      x_col=ColumnInput::Index(0), 
      n_col=ColumnInput::Index(1), 
@@ -20,9 +21,9 @@
      silence_default_warning = false,
      silence_numeric_warning = false,
  ))]
- #[allow(clippy::too_many_arguments)]
- #[allow(dead_code)]
- pub fn grim_map<'py>(
+#[allow(clippy::too_many_arguments)]
+#[allow(dead_code)]
+pub fn grim_map<'py>(
      py: Python<'py>,
      pandas_df: Bound<'py, PyAny>,
      x_col: ColumnInput,
@@ -36,15 +37,22 @@
      tolerance: f64,
      silence_default_warning: bool,
      silence_numeric_warning: bool,
- ) -> PyResult<(Vec<bool>, Option<Vec<usize>>)> {
-     let polars = py.import("polars")?;
-     let pl_df_obj = polars
+) -> PyResult<(Vec<bool>, Option<Vec<usize>>)> {
+     let polars = py.import("polars").map_err(|_| {
+        PyImportError::new_err(
+            "The 'polars' package is required for this function but is not installed.\n\
+                 You can install it with: pip install grim[polars]"
+        )
+    })?;
+
+     
+    let pl_df_obj = polars
          .getattr("DataFrame")?
          .call1((pandas_df,))?; // This works if pandas_df is convertible
  
-     let pydf: PyDataFrame = pl_df_obj.extract()?;
+    let pydf: PyDataFrame = pl_df_obj.extract()?;
  
-     grim_map_df(
+    grim_map_df(
          py,
          pydf,
          x_col,
@@ -58,5 +66,5 @@
          tolerance,
          silence_default_warning,
          silence_numeric_warning,
-     )
- }
+    )
+}
