@@ -13,14 +13,22 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 ```{r}
 library(scrutiny)
 data("pigs1")
+data("pigs2")
 ```
+
+
 ```{r}
 write.csv(pigs1,file="mysavefile.csv")
 ```
 
 ```{r}
-grim(pigs1$x, pigs1$n, percent = TRUE)
+grim(pigs2$x, pigs2$n, percent = FALSE)
 ```
+
+```{r}
+grim(pigs1$x, pigs1$n, percent = FALSE)
+```
+
 
 ```{r}
 grim("5.19", 20, 1, show_rec = TRUE, rounding = "up_and_down")
@@ -222,8 +230,7 @@ grim_scalar("5.19", 20, 1, FALSE, TRUE, "up_or_down", 5, FALSE, .Machine$double.
 ```
 
 
-
-```{r}/pigs1
+```{r}
 
 # # Full example inputs:
 # x         <- "5.19"
