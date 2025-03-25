@@ -35,7 +35,7 @@ use crate::grim::grim_rust;
     silence_default_warning = false,
     silence_numeric_warning = false,
 ))]
-pub fn grim_map_df(
+pub fn grim_map_pl(
     py: Python, 
     pydf: PyDataFrame, 
     x_col: ColumnInput, 

@@ -1,4 +1,4 @@
-use crate::grim_map_df::{grim_map_df, ColumnInput};
+use crate::grim_map_df::{grim_map_pl, ColumnInput};
 use core::f64;
 use pyo3::types::PyAnyMethods;
 use pyo3::{pyfunction, PyResult, Python, PyAny};
@@ -7,7 +7,7 @@ use pyo3::prelude::*;
 use pyo3::exceptions::PyImportError;
 use pyo3::types::PyString;
  
-/// Transforms a pandas dataframe to polars and runs grim_map_df 
+/// Transforms a pandas dataframe to polars and runs grim_map_pl 
 #[pyfunction(signature = (
      pandas_df, 
      x_col=ColumnInput::Default(0), 
@@ -60,7 +60,7 @@ pub fn grim_map<'py>(
  
     let pydf: PyDataFrame = pl_df_obj.extract()?;
  
-    grim_map_df(
+    grim_map_pl(
          py,
          pydf,
          x_col,
