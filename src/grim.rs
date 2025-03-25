@@ -82,6 +82,9 @@ pub fn grim_rust(
     tolerance: f64,
 ) -> Vec<bool> {
     //fn grim(xs: &[f64], nums: &[f64], items: &[f64]) -> Vec<f64> {
+    
+    println!("Received xs: {:?}", xs);
+
     let vals: Vec<Result<GrimReturn, std::num::ParseFloatError>> = xs
         .iter()
         .zip(ns.iter())
@@ -98,7 +101,6 @@ pub fn grim_rust(
             )
         })
         .collect();
-
     vals.iter()
         .map(|grim_result| match grim_result {
             Ok(grim_return) => match grim_return {

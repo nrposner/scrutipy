@@ -54,8 +54,18 @@ pub fn grim_map_df(
     let df: DataFrame = pydf.into();
     let rounds: Vec<&str> = rounding.iter().map(|s| &**s).collect(); 
 
+
+    println!("Columns: {:?}", df.get_column_names());
+    println!("Schema: {:?}", df.schema());
+    println!("First row: {:?}", df.get_row(0));
+
+
+
+
+
+
     let warnings = py.import("warnings").unwrap();
-    if (x_col == ColumnInput::Index(0)) & (n_col == ColumnInput::Index(1)) & !silence_default_warning {
+    if (x_col == ColumnInput::Default(0)) & (n_col == ColumnInput::Default(1)) & !silence_default_warning {
         warnings.call_method1(
             "warn",
             (PyString::new(py, "The columns `x_col` and `n_col` haven't been changed from their defaults. \n Please ensure that the first and second columns contain the xs and ns respectively. \n To silence this warning, set `silence_default_warning = True`."),),
@@ -79,6 +89,9 @@ pub fn grim_map_df(
             .as_series()
             .ok_or_else(|| PyTypeError::new_err("Column could not be interpreted as a Series"))?,
     };
+    if xs.len() == 0 {
+        return Err(PyTypeError::new_err("The x_col column is empty."));
+    }
 
     let ns: &Series = match n_col {
         ColumnInput::Name(name) => df.column(&name).map_err(|_| PyValueError::new_err(format!(
@@ -98,8 +111,18 @@ pub fn grim_map_df(
             .ok_or_else(|| PyTypeError::new_err("Column could not be interpreted as a Series"))?,
     };
 
+    if ns.len() == 0 {
+        return Err(PyTypeError::new_err("The n_col column is empty."));
+    }
+
     let xs_result = match xs.dtype() {
-        DataType::String => Ok(xs.iter().map(|x| x.to_string()).collect::<Vec<String>>()),
+        //DataType::String => Ok(xs.iter().map(|x| x.to_string()).collect::<Vec<String>>()),
+        DataType::String => Ok(
+            xs.str().unwrap()
+                .into_iter()
+                .map(|opt| opt.unwrap_or("").to_string())
+                .collect::<Vec<String>>()
+        ),
         DataType::UInt8
             | DataType::UInt16
             | DataType::UInt32
@@ -109,7 +132,14 @@ pub fn grim_map_df(
             | DataType::Int32
             | DataType::Int64
             | DataType::Float32
-            | DataType::Float64 => Ok(xs.iter().map(|x| x.to_string()).collect::<Vec<String>>()),
+            | DataType::Float64 => Ok({
+            if !silence_numeric_warning {
+                warnings.call_method1(
+                    "warn", 
+                    (PyString::new(py, "The column `x_col` is made up of numeric types instead of strings. \n Understand that you may be losing trailing zeros by using a purely numeric type. \n To silence this warning, set `silence_numeric_warning = True`."),),
+                ).unwrap();
+            }
+            xs.iter().map(|x| x.to_string()).collect::<Vec<String>>()}),
         _ => Err("Input xs column is neither a String nor numeric type"),
     };
 
@@ -130,13 +160,9 @@ pub fn grim_map_df(
         | DataType::Int8
         | DataType::Int16
         | DataType::Int32
-        | DataType::Int64 => Ok({
-            if !silence_numeric_warning {
-                warnings.call_method1(
-                    "warn", 
-                    (PyString::new(py, "The column `n_col` is made up of numeric types instead of strings. \n Understand that you may be losing trailing zeros by using a purely numeric type. \n To silence this warning, set `silence_numeric_warning = True`."),),
-                ).unwrap();
-            }
+        | DataType::Int64 
+        | DataType::Float32
+        | DataType::Float64 => Ok({
             ns.iter()
                 .map(|val| match val {
                     AnyValue::UInt8(n) => coerce_to_u32(n),
@@ -188,6 +214,13 @@ pub fn grim_map_df(
         Some(i) => i,
     };
 
+
+
+    println!("xs_vec: {:?}", xs_vec);
+
+
+
+
     let res = grim_rust(xs, ns.clone(), vec![percent, show_rec, symmetric], revised_items, rounds, threshold, tolerance);
 
     // if the length of ns_err_inds is 0, ie if no errors occurred, our error return is Option<None>.
@@ -237,25 +270,49 @@ fn coerce_string_to_u32(s: Series) -> Vec<Result<u32, NsParsingError>>{
     .collect::<Vec<Result<u32, NsParsingError>>>()
 }
 
-fn coerce_to_u32<T: Copy + NumCast + PartialOrd + std::fmt::Debug>(value: T) -> Result<u32, NsParsingError> {
-    if let Some(f) = NumCast::from(value) {
-        let float: f64 = f;
-        if float.fract() != 0.0 {
-            return Err(NsParsingError::NotAnInteger(float));
-        }
+
+fn coerce_to_u32<T: Copy + NumCast + std::fmt::Debug>(value: T) -> Result<u32, NsParsingError> {
+    let float: f64 = NumCast::from(value).ok_or(NsParsingError::NotAnInteger(0.0))?;
+
+    if !float.is_finite() {
+        return Err(NsParsingError::NotAnInteger(float));
     }
 
-    let as_i128 = NumCast::from(value).unwrap_or_default();
-    if as_i128 < 0 {
-        return Err(NsParsingError::NotPositive(as_i128));
+    if float.fract() != 0.0 {
+        return Err(NsParsingError::NotAnInteger(float));
     }
 
-    let as_u128 = NumCast::from(value).unwrap_or_default();
-    if as_u128 > u32::MAX as u128 {
-        return Err(NsParsingError::TooLarge(as_u128));
+    if float < 0.0 {
+        return Err(NsParsingError::NotPositive(float as i128));
     }
 
-    NumCast::from(value).ok_or(NsParsingError::TooLarge(0)) // shouldn't hit
+    if float > u32::MAX as f64 {
+        return Err(NsParsingError::TooLarge(float as u128));
+    }
+
+    Ok(float as u32)
 }
+
+
+// fn coerce_to_u32<T: Copy + NumCast + PartialOrd + std::fmt::Debug>(value: T) -> Result<u32, NsParsingError> {
+    // if let Some(f) = NumCast::from(value) {
+        // let float: f64 = f;
+        // if float.fract() != 0.0 {
+            // return Err(NsParsingError::NotAnInteger(float));
+        // }
+    // }
+// 
+    // let as_i128 = NumCast::from(value).unwrap_or_default();
+    // if as_i128 < 0 {
+        // return Err(NsParsingError::NotPositive(as_i128));
+    // }
+// 
+    // let as_u128 = NumCast::from(value).unwrap_or_default();
+    // if as_u128 > u32::MAX as u128 {
+        // return Err(NsParsingError::TooLarge(as_u128));
+    // }
+// 
+    // NumCast::from(value).ok_or(NsParsingError::TooLarge(0)) // shouldn't hit
+// }
 
 

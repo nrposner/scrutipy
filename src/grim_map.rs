@@ -5,12 +5,13 @@ use pyo3::{pyfunction, PyResult, Python, PyAny};
 use pyo3_polars::PyDataFrame;
 use pyo3::prelude::*;
 use pyo3::exceptions::PyImportError;
+use pyo3::types::PyString;
  
 /// Transforms a pandas dataframe to polars and runs grim_map_df 
 #[pyfunction(signature = (
      pandas_df, 
-     x_col=ColumnInput::Index(0), 
-     n_col=ColumnInput::Index(1), 
+     x_col=ColumnInput::Default(0), 
+     n_col=ColumnInput::Default(1), 
      percent = false,
      show_rec = false,
      symmetric = false,
@@ -45,6 +46,13 @@ pub fn grim_map<'py>(
         )
     })?;
 
+    let warnings = py.import("warnings").unwrap();
+    if (x_col == ColumnInput::Default(0)) & (n_col == ColumnInput::Default(1)) & !silence_default_warning {
+        warnings.call_method1(
+            "warn",
+            (PyString::new(py, "The columns `x_col` and `n_col` haven't been changed from their defaults. \n Please ensure that the first and second columns contain the xs and ns respectively. \n To silence this warning, set `silence_default_warning = True`."),),
+        ).unwrap();
+    };
      
     let pl_df_obj = polars
          .getattr("DataFrame")?

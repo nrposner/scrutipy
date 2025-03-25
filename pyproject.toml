@@ -13,7 +13,7 @@ classifiers = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
-polars = ["polars>=0.20"]
+polars = ["polars>=0.20", "pyarrow>=13"]
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
