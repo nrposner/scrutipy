@@ -10,15 +10,6 @@ use num::NumCast;
 use thiserror::Error;
 use crate::grim::grim_rust;
 
-/// Converts x_col and n_col inputs to either usize or String in order to attempt column extraction
-#[derive(FromPyObject, PartialEq)]
-pub enum ColumnInput {
-    Index(usize), // first check to see whether we can coerce this into a usize 
-    Name(String), // otherwise keep as string 
-    Default(usize), // only accessible directly in the code, for the purposes of determining
-    // whether default options have been changed
-}
-
 /// Implements grim_map over the columns of a Python dataframe. 
 ///
 /// Takes the provided dataframe as well as inputs indicating the columns to be used as xs and ns.
@@ -119,7 +110,7 @@ pub fn grim_map_df(
             | DataType::Int64
             | DataType::Float32
             | DataType::Float64 => Ok(xs.iter().map(|x| x.to_string()).collect::<Vec<String>>()),
-        _ => Err("Input xs column is neither a string nor numeric type"),
+        _ => Err("Input xs column is neither a String nor numeric type"),
     };
 
     // if the data type of xs is neither a string nor a numeric type which we could plausibly
@@ -209,11 +200,20 @@ pub fn grim_map_df(
     Ok((res, err_output)) 
 }
 
-#[derive(Debug, Error)]
-pub enum GrimMapDfError {
-    #[error("bla bla")]
-    BlaBla(),
+/// Converts x_col and n_col inputs to either usize or String in order to attempt column extraction
+#[derive(FromPyObject, PartialEq)]
+pub enum ColumnInput {
+    Index(usize), // first check to see whether we can coerce this into a usize 
+    Name(String), // otherwise keep as string 
+    Default(usize), // only accessible directly in the code, for the purposes of determining
+    // whether default options have been changed
 }
+
+// #[derive(Debug, Error)]
+// pub enum GrimMapDfError {
+    // #[error("bla bla")]
+    // BlaBla(),
+// }
 
 #[derive(Debug, Error, PartialEq)]
 pub enum NsParsingError {
