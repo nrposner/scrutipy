@@ -2,7 +2,7 @@ use core::f64;
 use polars::series::Series;
 use polars::datatypes::AnyValue;
 use polars::{frame::DataFrame, prelude::DataType};
-use pyo3::exceptions::PyTypeError;
+use pyo3::exceptions::{PyTypeError, PyValueError, PyIndexError};
 use pyo3::types::{PyAnyMethods, PyString};
 use pyo3::{pyfunction, FromPyObject, PyResult, Python};
 use pyo3_polars::PyDataFrame;
@@ -72,15 +72,39 @@ pub fn grim_map_df(
     };
 
     let xs: &Series = match x_col {
-        ColumnInput::Name(name) => df.column(&name).unwrap().as_series().unwrap(),
-        ColumnInput::Index(ind) => df.get_columns()[ind].as_series().unwrap(), 
-        ColumnInput::Default(ind) => df.get_columns()[ind].as_series().unwrap(),
+        ColumnInput::Name(name) => df.column(&name).map_err(|_| PyValueError::new_err(format!(
+            "The x_col column named '{}' not found in the provided dataframe. Available columns: {:?}",
+            name,
+            df.get_column_names()
+        )))?
+            .as_series()
+            .ok_or_else(|| PyTypeError::new_err(format!("The column '{}' could not be interpreted as a Series", name)))?,
+
+        ColumnInput::Index(ind) | ColumnInput::Default(ind) => df.get_columns().get(ind).ok_or_else(|| PyIndexError::new_err(format!(
+            "The x_col column index '{}' is out of bounds for the provided dataframe, which has {} columns",
+            ind,
+            df.width()
+        )))?
+            .as_series()
+            .ok_or_else(|| PyTypeError::new_err("Column could not be interpreted as a Series"))?,
     };
 
-    let ns: &Series= match n_col {
-        ColumnInput::Name(name) => df.column(&name).unwrap().as_series().unwrap(),
-        ColumnInput::Index(ind) => df.get_columns()[ind].as_series().unwrap(),
-        ColumnInput::Default(ind) => df.get_columns()[ind].as_series().unwrap(),
+    let ns: &Series = match n_col {
+        ColumnInput::Name(name) => df.column(&name).map_err(|_| PyValueError::new_err(format!(
+            "The n_col column named '{}' not found in the provided dataframe. Available columns: {:?}", 
+            name, 
+            df.get_column_names()
+        )))?
+            .as_series()
+            .ok_or_else(|| PyTypeError::new_err(format!("The column '{}' could not be interpreted as a Series", name)))?,
+
+        ColumnInput::Index(ind) | ColumnInput::Default(ind) => df.get_columns().get(ind).ok_or_else(|| PyIndexError::new_err(format!(
+            "The n_col column index '{}' is out of bounds for the provided dataframe, which has {} columns", 
+            ind, 
+            df.width()
+        )))?
+            .as_series()
+            .ok_or_else(|| PyTypeError::new_err("Column could not be interpreted as a Series"))?,
     };
 
     let xs_result = match xs.dtype() {
