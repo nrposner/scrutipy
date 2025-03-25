@@ -63,7 +63,10 @@ pub enum ColumnInput {
     pydf, 
     x_col=ColumnInput::Index(0), 
     n_col=ColumnInput::Index(1), 
-    bool_params = vec![false, false, false], 
+    //bool_params = vec![false, false, false], 
+    percent = false,
+    show_rec = false,
+    symmetric = false,
     items = None, 
     rounding = vec!["up_or_down".to_string()], 
     threshold = 5.0, 
@@ -76,7 +79,10 @@ pub fn grim_map_df(
     pydf: PyDataFrame, 
     x_col: ColumnInput, 
     n_col: ColumnInput, 
-    bool_params: Vec<bool>, // contains percent, show_rec, symmetric
+    //bool_params: Vec<bool>, // contains percent, show_rec, symmetric
+    percent: bool,
+    show_rec: bool,
+    symmetric: bool,
     items: Option<Vec<u32>>, 
     rounding: Vec<String>, 
     threshold: f64, 
@@ -144,7 +150,7 @@ pub fn grim_map_df(
             if !silence_numeric_warning {
                 warnings.call_method1(
                     "warn", 
-                    (PyString::new(py, "The column `x_col` is made up of numeric types instead of strings. \n Understand that you may be losing trailing zeros by using a purely numeric type. \n To silence this warning, set `silence_numeric_warning = True`."),),
+                    (PyString::new(py, "The column `n_col` is made up of numeric types instead of strings. \n Understand that you may be losing trailing zeros by using a purely numeric type. \n To silence this warning, set `silence_numeric_warning = True`."),),
                 ).unwrap();
             }
             ns.iter()
@@ -205,7 +211,7 @@ pub fn grim_map_df(
         Some(i) => i,
     };
 
-    let res = grim_rust(xs, ns.clone(), bool_params, revised_items, rounds, threshold, tolerance);
+    let res = grim_rust(xs, ns.clone(), vec![percent, show_rec, symmetric], revised_items, rounds, threshold, tolerance);
 
     // if the length of ns_err_inds is 0, ie if no errors occurred, our error return is Option<None>.
     // Otherwise, our error return is Option<ns_err_inds>
