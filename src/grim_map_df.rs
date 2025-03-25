@@ -10,42 +10,13 @@ use num::NumCast;
 use thiserror::Error;
 use crate::grim::grim_rust;
 
-/// We want to give grim_map the ability to operate on dataframes passed in from python
-/// Let's pseudocode out what we want to do 
-///
-/// The user calls grim_map from python. They may input some iterable, like a series, list, array,
-/// what have you, and if they do, we want to use the grim_map functionality we've already defined
-/// But if they put in a dataframe, we want to do something quite different
-/// First, inside the dataframe, we distinguish that they've done this, and prepare to call a
-/// different set of rust functions 
-/// We'll demand that they input certain keyword arguments which are optional (in fact, useless) if
-/// the function supplies the iterables directly 
-/// These optional kwargs supply the names or indices of the columns that we want to use for the
-/// analysis, with one being the xs and the other the sds, 
-/// Do we perhaps need a third, super-duper special double-optional column of item numbers?
-/// Probably not. 
-///
-/// Having been supplied either the names or indices of the columns (can we mix and match? I don't
-/// see why not) we need to:
-///     - check to make sure these aren't the same column. That seems like an easy way to shoot
-///     yourself in the foot with this, especially if you are mixing and matching names and indices
-///     for some godsforsaken reason, and we want to cut off that possibility at the outset
-///     We'll give the user an error, and tell them that if they've thought about it long and hard
-///     and eaten their vegetables, they acn urn on yet another optional kwarg which silences this
-///     message. At that point, any mistake they make is their own fool fault.
-///     - access these two columns and confirm that their types are compatible with our needs.
-///     These can either strings or numerics, but it must be possible to convert them into
-///     integers or floats, as needed. How do we check this properly? We can try to guarantee it
-///     for our other needs, but at some point, we will need to simply go through every value and
-///     see whether it parses into a numeric type. Otherwise, we would need to allow for any given
-///     record to simply not be accepted, and alert the user to that fact. 
-/// The grim_map_df can take either column indices or column names as inputs when selecting the x
-/// and n columns. This enum allows for 
+/// Converts x_col and n_col inputs to either usize or String in order to attempt column extraction
 #[derive(FromPyObject, PartialEq)]
 pub enum ColumnInput {
-    Index(usize),
-    Name(String),
-    Default(usize),
+    Index(usize), // first check to see whether we can coerce this into a usize 
+    Name(String), // otherwise keep as string 
+    Default(usize), // only accessible directly in the code, for the purposes of determining
+    // whether default options have been changed
 }
 
 /// Implements grim_map over the columns of a Python dataframe. 
@@ -63,7 +34,6 @@ pub enum ColumnInput {
     pydf, 
     x_col=ColumnInput::Index(0), 
     n_col=ColumnInput::Index(1), 
-    //bool_params = vec![false, false, false], 
     percent = false,
     show_rec = false,
     symmetric = false,
@@ -79,7 +49,6 @@ pub fn grim_map_df(
     pydf: PyDataFrame, 
     x_col: ColumnInput, 
     n_col: ColumnInput, 
-    //bool_params: Vec<bool>, // contains percent, show_rec, symmetric
     percent: bool,
     show_rec: bool,
     symmetric: bool,
@@ -194,13 +163,6 @@ pub fn grim_map_df(
         } else {
             ns_err_inds.push(i)
         };
-        //match n_result {
-        //    Ok(u) => {
-        //        ns.push(*u);
-        //        xs.push(*x)
-        //    },
-        //    Err(_) => ns_err_inds.push(i)
-        //}
     }
 
     // since we can't set a default for items which is dependent on the size of another variable
