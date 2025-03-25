@@ -6,8 +6,8 @@ use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 
 #[cfg(not(tarpaulin_include))]
-#[pymodule(name = "scrutipy_rs")]
-fn scrutipy_rs(module: &Bound<'_, PyModule>) -> PyResult<()> {
+#[pymodule(name = "scrutipy")]
+fn scrutipy(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(grim_scalar, module)?)?;
     module.add_function(wrap_pyfunction!(grimmer, module)?)?;
     module.add_function(wrap_pyfunction!(grim_map_df, module)?)?;

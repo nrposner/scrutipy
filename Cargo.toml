@@ -1,10 +1,10 @@
 [package]
-name = "scrutipy_rs"
+name = "scrutipy"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "scrutipy_rs"
+name = "scrutipy"
 crate-type = ["cdylib"]
 
 [dependencies]
@@ -19,7 +19,7 @@ serde = { version = "1.0.218", features = ["derive"] }
 thiserror = "2.0.12"
 
 [package.metadata.maturin]
-name = "scrutipy_rs"
+name = "scrutipy"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tarpaulin_include)']}
