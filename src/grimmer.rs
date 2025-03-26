@@ -130,7 +130,9 @@ pub fn grimmer_scalar(
 
     let sd = dustify(sd);
 
-    let sd_rec_rounded: Vec<f64> = sd_rec_rounded.into_iter().flat_map(dustify).collect();
+    let sd_rec_rounded: Vec<Vec<f64>> = sd_rec_rounded.iter().map(|&v|
+        v.into_iter().flat_map(dustify).collect()
+    ).collect();
 
     let matches_sd: Vec<bool> = sd
         .iter()
