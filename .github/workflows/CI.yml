@@ -36,6 +36,10 @@ jobs:
           args: --release --strip --out dist
           manylinux: auto
 
+      - name: Install maturin for upload
+        run: pip install maturin
+        shell: bash
+
       - name: Publish to PyPI
         run: maturin upload --username __token__ --password ${{ secrets.PYPI_API_TOKEN }} dist/*
         shell: bash
