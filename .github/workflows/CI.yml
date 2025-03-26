@@ -20,7 +20,13 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Check if secret is present
-        run: echo "PYPI token length: ${#{{ secrets.PYPI_API_TOKEN }}}"
+        run: |
+          if [ -z "${{ secrets.PYPI_API_TOKEN }}" ]; then
+            echo "❌ PYPI_API_TOKEN is NOT set"
+            exit 1
+          else
+            echo "✅ PYPI_API_TOKEN is present"
+          fi
 
       - uses: PyO3/maturin-action@v1
         with:
