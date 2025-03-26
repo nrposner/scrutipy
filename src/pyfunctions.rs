@@ -6,6 +6,12 @@ use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use crate::grim_map::grim_map;
 
+/// Scrutipy: A library for scientific error checking and fraud detection.
+///
+/// Based on the R Scrutiny library by Lukas Jung.  
+/// Frontend API in Python 3; backend in Rust via PyO3 bindings.
+///
+/// Currently in early development.
 #[cfg(not(tarpaulin_include))]
 #[pymodule(name = "scrutipy")]
 fn scrutipy(module: &Bound<'_, PyModule>) -> PyResult<()> {
