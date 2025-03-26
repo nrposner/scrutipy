@@ -7,7 +7,33 @@ use pyo3::prelude::*;
 use pyo3::exceptions::PyImportError;
 use pyo3::types::PyString;
  
-/// Transforms a pandas dataframe to polars and runs grim_map_pl 
+/// Run a GRIM consistency check on a pandas DataFrame.
+///
+/// Parameters
+/// ----------
+/// pandas_df : A pandas DataFrame containing at least two columns: one for reported means (`x_col`) and one for corresponding sample sizes (`n_col`).
+/// x_col : The column containing reported means (index or name). Defaults to column 0.
+/// n_col : The column containing sample sizes (index or name). Defaults to column 1.
+/// percent : If `True`, values in `x_col` are interpreted as percentages (e.g., 25.3% instead of 0.253).
+/// show_rec : ![not fully implemented!] If `True`, returns more verbose recommendation.
+/// symmetric : If `True`, uses symmetric rounding when validating consistency.
+/// items : Optional list of item counts. If not provided, defaults to all 1s.
+/// rounding : A list of rounding strategies. Defaults to `["up_or_down"]`.
+/// threshold : Threshold for rounding tolerance. Defaults to 5.0).
+/// tolerance : Numerical epsilon used in float comparisons. Defaults to square root of 64-bit floating point machine epsilon
+/// silence_default_warning : Suppresses warning about default column selection.
+/// silence_numeric_warning : Suppresses warning about using numeric types in `x_col`.
+/// 
+/// Returns
+/// ----------
+/// tuple
+///     (List of booleans indicating GRIM validity, Optional list of error row indices)
+/// 
+/// Example
+/// ----------
+/// >>> df = pd.DataFrame({"x": ["5.0", "5.27"], "n": [20, 20]})
+/// >>> grim_map(df)
+/// ([True, False], None
 #[pyfunction(signature = (
      pandas_df, 
      x_col=ColumnInput::Default(0), 
@@ -23,7 +49,41 @@ use pyo3::types::PyString;
      silence_numeric_warning = false,
  ))]
 #[allow(clippy::too_many_arguments)]
-#[allow(dead_code)]
+/// Runs a GRIM consistency check across a pandas DataFrame.
+///
+/// This function converts a pandas DataFrame to a Polars DataFrame under the hood,
+/// then calls the core GRIM checking logic implemented in Rust.
+///
+/// GRIM (Granularity-Related Inconsistency of Means) evaluates whether reported
+/// means are consistent with whole-number item counts, assuming uniform item structure.
+///
+/// # Parameters
+/// - `pandas_df`: A pandas DataFrame containing at least two columns: one for reported means (`x_col`)
+///   and one for corresponding sample sizes (`n_col`).
+/// - `x_col`: The column containing reported means (index or name). Defaults to column 0.
+/// - `n_col`: The column containing sample sizes (index or name). Defaults to column 1.
+/// - `percent`: If `True`, values in `x_col` are interpreted as percentages (e.g., 25.3% instead of 0.253).
+/// - `show_rec`: ![not fully implemented!] If `True`, returns more verbose recommendation.
+/// - `symmetric`: If `True`, uses symmetric rounding when validating consistency.
+/// - `items`: Optional list of item counts. If not provided, defaults to all 1s.
+/// - `rounding`: A list of rounding strategies. Defaults to `["up_or_down"]`.
+/// - `threshold`: Threshold for rounding tolerance. Defaults to 5.0).
+/// - `tolerance`: Numerical epsilon used in float comparisons. Defaults to square root of 64-bit
+/// floating point machine epsilon
+/// - `silence_default_warning`: Suppresses warning about default column selection.
+/// - `silence_numeric_warning`: Suppresses warning about using numeric types in `x_col`.
+///
+/// # Returns
+/// A tuple of:
+/// - `List[bool]`: Which rows pass or fail the GRIM test
+/// - `Optional[List[int]]`: Indices of rows that failed to parse correctly, if any
+///
+/// # Example
+/// ```python
+/// df = pd.DataFrame({"x": ["5.0", "5.27"], "n": [20, 20]})
+/// bools, errors = grim_map(df)
+/// # ([True, False], None)
+/// ```
 pub fn grim_map<'py>(
      py: Python<'py>,
      pandas_df: Bound<'py, PyAny>,
