@@ -81,9 +81,6 @@ pub fn grim_rust(
     threshold: f64,
     tolerance: f64,
 ) -> Vec<bool> {
-    //fn grim(xs: &[f64], nums: &[f64], items: &[f64]) -> Vec<f64> {
-    
-    println!("Received xs: {:?}", xs);
 
     let vals: Vec<Result<GrimReturn, std::num::ParseFloatError>> = xs
         .iter()

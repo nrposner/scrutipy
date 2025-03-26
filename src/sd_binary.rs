@@ -1,8 +1,6 @@
 // now do the sd_binary functions, originally from the sd-binary.R file not utils, but for now we
 // can keep them here, they're short enough
 // 66, 70, 94, 98, 122, 126
-#[allow(unused_imports)]
-use crate::rounding::rust_round;
 /// Returns the standard deviation of binary value counts
 ///
 /// Parameters:
@@ -132,6 +130,7 @@ pub fn sd_binary_mean_n(mean: f64, n: u32) -> Result<f64, SdBinaryError> {
 #[cfg(test)]
 pub mod tests {
     use super::*;
+    use crate::rounding::rust_round;
 
     #[test]
     fn sd_binary_mean_test_1() {

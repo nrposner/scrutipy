@@ -54,16 +54,6 @@ pub fn grim_map_pl(
     let df: DataFrame = pydf.into();
     let rounds: Vec<&str> = rounding.iter().map(|s| &**s).collect(); 
 
-
-    println!("Columns: {:?}", df.get_column_names());
-    println!("Schema: {:?}", df.schema());
-    println!("First row: {:?}", df.get_row(0));
-
-
-
-
-
-
     let warnings = py.import("warnings").unwrap();
     if (x_col == ColumnInput::Default(0)) & (n_col == ColumnInput::Default(1)) & !silence_default_warning {
         warnings.call_method1(
@@ -116,7 +106,6 @@ pub fn grim_map_pl(
     }
 
     let xs_result = match xs.dtype() {
-        //DataType::String => Ok(xs.iter().map(|x| x.to_string()).collect::<Vec<String>>()),
         DataType::String => Ok(
             xs.str().unwrap()
                 .into_iter()
@@ -214,13 +203,6 @@ pub fn grim_map_pl(
         Some(i) => i,
     };
 
-
-
-    println!("xs_vec: {:?}", xs_vec);
-
-
-
-
     let res = grim_rust(xs, ns.clone(), vec![percent, show_rec, symmetric], revised_items, rounds, threshold, tolerance);
 
     // if the length of ns_err_inds is 0, ie if no errors occurred, our error return is Option<None>.
@@ -241,12 +223,6 @@ pub enum ColumnInput {
     Default(usize), // only accessible directly in the code, for the purposes of determining
     // whether default options have been changed
 }
-
-// #[derive(Debug, Error)]
-// pub enum GrimMapDfError {
-    // #[error("bla bla")]
-    // BlaBla(),
-// }
 
 #[derive(Debug, Error, PartialEq)]
 pub enum NsParsingError {
@@ -270,7 +246,6 @@ fn coerce_string_to_u32(s: Series) -> Vec<Result<u32, NsParsingError>>{
     .collect::<Vec<Result<u32, NsParsingError>>>()
 }
 
-
 fn coerce_to_u32<T: Copy + NumCast + std::fmt::Debug>(value: T) -> Result<u32, NsParsingError> {
     let float: f64 = NumCast::from(value).ok_or(NsParsingError::NotAnInteger(0.0))?;
 
@@ -292,27 +267,4 @@ fn coerce_to_u32<T: Copy + NumCast + std::fmt::Debug>(value: T) -> Result<u32, N
 
     Ok(float as u32)
 }
-
-
-// fn coerce_to_u32<T: Copy + NumCast + PartialOrd + std::fmt::Debug>(value: T) -> Result<u32, NsParsingError> {
-    // if let Some(f) = NumCast::from(value) {
-        // let float: f64 = f;
-        // if float.fract() != 0.0 {
-            // return Err(NsParsingError::NotAnInteger(float));
-        // }
-    // }
-// 
-    // let as_i128 = NumCast::from(value).unwrap_or_default();
-    // if as_i128 < 0 {
-        // return Err(NsParsingError::NotPositive(as_i128));
-    // }
-// 
-    // let as_u128 = NumCast::from(value).unwrap_or_default();
-    // if as_u128 > u32::MAX as u128 {
-        // return Err(NsParsingError::TooLarge(as_u128));
-    // }
-// 
-    // NumCast::from(value).ok_or(NsParsingError::TooLarge(0)) // shouldn't hit
-// }
-
 

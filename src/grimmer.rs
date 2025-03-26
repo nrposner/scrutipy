@@ -211,14 +211,6 @@ pub fn grimmer(
     )
 }
 
-//#[pymodule]
-// #[cfg(not(tarpaulin_include))]
-// #[allow(dead_code)]
-// fn scrutipy(module: &Bound<'_, PyModule>) -> PyResult<()> {
-    // module.add_function(wrap_pyfunction!(grimmer, module)?)?;
-    // Ok(())
-// }
-
 #[allow(clippy::too_many_arguments)]
 pub fn grimmer_rust(
     xs: Vec<&str>,
