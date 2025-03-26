@@ -20,6 +20,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Check if secret is present
+        shell: bash
         run: |
           if [ -z "${{ secrets.PYPI_API_TOKEN }}" ]; then
             echo "❌ PYPI_API_TOKEN is NOT set"
