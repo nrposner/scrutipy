@@ -4,15 +4,15 @@ build-backend = "maturin"
 
 [project]
 name = "scrutipy"
-#version = "0.1.0"
+version = "0.1.0"
 description = "A toolset for detecting inconsistencies in summary data."
 readme = "README.md"
 requires-python = ">=3.8"
 
 license = { text = "MIT" }
 
-authors = [{ name = "Nicolas Roman Poser", email = "nrposner@uchicago.edu" }]
-maintainers = [{ name = "Nicolas Roman Poser", email = "nrposner@uchicago.edu" }]
+authors = [{ name = "Nicolas Roman Posner", email = "nrposner@uchicago.edu" }]
+maintainers = [{ name = "Nicolas Roman Posner", email = "nrposner@uchicago.edu" }]
 keywords = ["statistics", "diagnostics", "fraud detection", "error detection", "summary data", "replication"]
 
 classifiers = [
@@ -25,7 +25,7 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Information Analysis",
 ]
-dynamic = ["version"]
+# dynamic = ["version"]
 
 [project.optional-dependencies]
 polars = ["polars>=0.20", "pyarrow>=13"]
