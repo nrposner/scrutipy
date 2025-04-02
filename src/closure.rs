@@ -18,7 +18,7 @@ use rayon::prelude::*;
 use pyo3::pyfunction;
 
 #[pyfunction]
-#[allow(unused_variables)]
+#[cfg(not(tarpaulin_include))]
 pub fn closure(
     mean: f64,
     sd: f64,
