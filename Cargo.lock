@@ -1820,6 +1820,7 @@ dependencies = [
  "polars",
  "pyo3",
  "pyo3-polars",
+ "rayon",
  "regex",
  "serde",
  "thiserror 2.0.12",

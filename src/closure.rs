@@ -9,11 +9,28 @@
 //! into a CSV file, but this may change in the future.)
 //! 
 //! Most of the code was written by Claude 3.5, translating Python code by Nathanael Larigaldie.
-
+//! 
+//! This version is copied from Lukas Jung and Nathanael Larigaldie's implementation for R
 
 use num::{Float, FromPrimitive, Integer, NumCast, ToPrimitive};
 use std::collections::VecDeque;
 use rayon::prelude::*;
+use pyo3::pyfunction;
+
+#[pyfunction]
+#[allow(unused_variables)]
+pub fn closure(
+    mean: f64,
+    sd: f64,
+    n: i32,
+    scale_min: i32,
+    scale_max: i32,
+    rounding_error_mean: f64,
+    rounding_error_sd: f64,
+) -> Vec<Vec<i32>> {
+    dfs_parallel(mean, sd, n, scale_min, scale_max, rounding_error_mean, rounding_error_sd)
+}
+//3.5, 0.57, 100, 0, 7, 0.05, 0.05);
 
 /// An iterator over a range of Rint-friendly generic integers `U`.
 ///
