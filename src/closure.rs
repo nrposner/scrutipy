@@ -17,7 +17,7 @@ use std::collections::VecDeque;
 use rayon::prelude::*;
 use pyo3::pyfunction;
 
-#[pyfunction]
+#[pyfunction(signature = (mean, sd, n, scale_min, scale_max, rounding_error_mean, rounding_error_sd))]
 #[cfg(not(tarpaulin_include))]
 pub fn closure(
     mean: f64,
