@@ -30,7 +30,6 @@ pub fn closure(
 ) -> Vec<Vec<i32>> {
     dfs_parallel(mean, sd, n, scale_min, scale_max, rounding_error_mean, rounding_error_sd)
 }
-//3.5, 0.57, 100, 0, 7, 0.05, 0.05);
 
 /// An iterator over a range of Rint-friendly generic integers `U`.
 ///
@@ -452,5 +451,14 @@ mod tests {
     fn test_count_initial_combinations() {
         assert_eq!(count_initial_combinations(1, 3), 6);
         assert_eq!(count_initial_combinations(1, 4), 10);
+    }
+
+    #[test]
+    fn test_568() {
+        assert_eq!(dfs_parallel(3.5, 0.57, 100, 0, 7, 0.05, 0.05).len(), 568);
+    }
+    #[test]
+    fn test_empty() {
+        assert!(dfs_parallel(10.0, 2.0, 3, 1, 5, 0.1, 0.1).is_empty());
     }
 }
