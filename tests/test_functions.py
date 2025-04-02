@@ -5,6 +5,7 @@ import pandas as pd
 import polars as pl
 from scrutipy import grim_map
 import pytest
+from scrutipy import closure;
 
 def test_grim_1():
     result = grim_scalar("5.19", 40)
@@ -143,3 +144,9 @@ def test_empty_dataframe():
     with pytest.raises(TypeError, match="The x_col column is empty."):
         grim_map(df, silence_default_warning = True, silence_numeric_warning = True)
 
+def test_closure_568():
+    res = len(closure(3.5, 0.57, 100, 0, 7, 0.05, 0.05))
+    assert res == 568
+
+def test_closure_empty():
+    assert not closure(10.0, 2.0, 3, 1, 5, 0.1, 0.1)
