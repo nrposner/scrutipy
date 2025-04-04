@@ -147,15 +147,13 @@ pub fn reround(
     rounding: Vec<&str>,
     threshold: f64,
     symmetric: bool,
-) -> Vec<Vec<f64>> {
+) -> Vec<f64> {
 
-    rounding.iter().map(|r|
-        x.iter()
-            .flat_map(|&x| {
-                reconstruct_rounded_numbers_scalar(x, digits, r, threshold, symmetric)
-            })
-            .collect()
-    ).collect()
+    x.iter()
+        .flat_map(|&x| {
+            reconstruct_rounded_numbers_scalar(x, digits, rounding[0], threshold, symmetric)
+        })
+        .collect()
         // this is the root, we need to have it zip across multiple rounding options, returning a
     // vec of vec, where the inner vector includes all the rounded numbers for a given rounding
     // scheme, and the outer vector includes a vector for each rounding scheme
