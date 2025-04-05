@@ -19,6 +19,32 @@ use pyo3::pyfunction;
 
 #[pyfunction(signature = (mean, sd, n, scale_min, scale_max, rounding_error_mean, rounding_error_sd))]
 #[cfg(not(tarpaulin_include))]
+/// A Python implementation of the CLOSURE algorithm for reconstructing datasets from summary
+/// statistics. 
+///
+/// Parameters:
+///     mean (float): The target mean of the combinations.
+///     sd (float): The target standard deviation of the combinations.
+///     n (int): The number of values in each combination.
+///     scale_min (int): The minimum scale value (inclusive).
+///     scale_max (int): The maximum scale value (inclusive).
+///     rounding_error_mean (float): The allowable rounding error for the mean.
+///     rounding_error_sd (float): The allowable rounding error for the standard deviation.
+///
+/// Returns:
+///     List[List[int]]: A list of lists, where each inner list represents a valid combination of integer values that meet the specified criteria.
+///
+/// Usage Example:
+///     >>> from closure_core import closure
+///     >>> combinations = closure(3.5, 1.2, 50, 0, 7, 0.05, 0.005)
+///     >>> print(len(combinations))
+///     7980
+///
+/// Notes:
+///     - This function leverages parallel processing to efficiently explore the solution space.
+///     - It is a high-level interface to the lower-level `dfs_branch()` Rust function. 
+///     - Despite optimizations and parallelisms, the space of possible solutions grows explosively
+///     as n, the range, and rounding error increase.
 pub fn closure(
     mean: f64,
     sd: f64,
@@ -454,8 +480,8 @@ mod tests {
     }
 
     #[test]
-    fn test_568() {
-        assert_eq!(dfs_parallel(3.5, 0.57, 100, 0, 7, 0.05, 0.05).len(), 568);
+    fn test_7980() {
+        assert_eq!(dfs_parallel(3.5, 1.2, 50, 0, 7, 0.05, 0.005).len(), 7980);
     }
     #[test]
     fn test_empty() {
