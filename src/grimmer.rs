@@ -41,7 +41,7 @@ pub fn grimmer_scalar(
     n: u32,
     items: u32,
     bool_params: Vec<bool>,
-    rounding: Vec<&str>,
+    rounding: &str,
     threshold: f64,
     tolerance: f64,
 ) -> bool {
@@ -62,7 +62,7 @@ pub fn grimmer_scalar(
         n,
         bool_params.clone(),
         items,
-        rounding.clone(),
+        rounding,
         threshold,
         tolerance,
     );
@@ -186,7 +186,7 @@ pub fn grimmer(
     xs: Vec<String>,
     sds: Vec<String>,
     ns: Vec<u32>,
-    rounding: Vec<String>,
+    rounding: String,
     items: Vec<u32>,
     percent: bool,
     show_reason: bool,
@@ -197,7 +197,6 @@ pub fn grimmer(
     let bool_params = vec![percent, show_reason, symmetric];
     let xs: Vec<&str> = xs.iter().map(|s| &**s).collect();
     let sds: Vec<&str> = sds.iter().map(|s| &**s).collect();
-    let rounding: Vec<&str> = rounding.iter().map(|s| &**s).collect();
 
     grimmer_rust(
         xs,
@@ -205,7 +204,7 @@ pub fn grimmer(
         ns,
         items,
         bool_params,
-        rounding,
+        rounding.as_str(),
         threshold,
         tolerance,
     )
@@ -218,7 +217,7 @@ pub fn grimmer_rust(
     ns: Vec<u32>,
     items: Vec<u32>,
     bool_params: Vec<bool>,
-    rounding: Vec<&str>,
+    rounding: &str,
     threshold: f64,
     tolerance: f64,
 ) -> Vec<bool> {
@@ -233,7 +232,7 @@ pub fn grimmer_rust(
                 *n,
                 *item,
                 bool_params.clone(),
-                rounding.clone(),
+                rounding,
                 threshold,
                 tolerance,
             )
@@ -253,7 +252,7 @@ pub mod test {
             40,
             1,
             vec![false, true, false],
-            vec!["up_or_down"],
+            "up_or_down",
             5.0,
             EPS.powf(0.5),
         );
@@ -268,7 +267,7 @@ pub mod test {
             40,
             1,
             vec![false, false, false],
-            vec!["up_or_down"],
+            "up_or_down",
             5.0,
             EPS.powf(0.5),
         );
@@ -283,7 +282,7 @@ pub mod test {
             10,
             1,
             vec![false, true, false],
-            vec!["up_or_down"],
+            "up_or_down",
             5.0,
             EPS.powf(0.5),
         );
@@ -298,7 +297,7 @@ pub mod test {
             30,
             1,
             vec![false, true, false],
-            vec!["up_or_down"],
+            "up_or_down",
             5.0,
             EPS.powf(0.5),
         );
@@ -315,7 +314,7 @@ pub mod test {
             2, // in current version, item > 1 is not covered, should return an
             // unimplemented! panic error
             vec![false, true, false],
-            vec!["up_or_down"],
+            "up_or_down",
             5.0,
             EPS.powf(0.5),
         );
@@ -330,7 +329,7 @@ pub mod test {
             30,
             1,
             vec![false, true, false],
-            vec!["up_or_down"],
+            "up_or_down",
             5.0,
             EPS.powf(0.5),
         );
@@ -345,7 +344,7 @@ pub mod test {
             30,
             1,
             vec![false, true, false],
-            vec!["up_or_down"],
+            "up_or_down",
             5.0,
             EPS.powf(0.5),
         );
@@ -359,7 +358,7 @@ pub mod test {
             40,
             1,
             vec![true, true, false],
-            vec!["up_or_down"],
+            "up_or_down",
             5.0,
             EPS.powf(0.5),
         );
@@ -374,7 +373,7 @@ pub mod test {
             vec![40],
             vec![1],
             vec![false, true, false],
-            vec!["up_or_down"],
+            "up_or_down",
             5.0,
             EPS.powf(0.5),
         )[0];

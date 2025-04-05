@@ -144,14 +144,14 @@ pub fn reconstruct_rounded_numbers_scalar(
 pub fn reround(
     x: Vec<f64>,
     digits: i32,
-    rounding: Vec<&str>,
+    rounding: &str,
     threshold: f64,
     symmetric: bool,
 ) -> Vec<f64> {
 
     x.iter()
         .flat_map(|&x| {
-            reconstruct_rounded_numbers_scalar(x, digits, rounding[0], threshold, symmetric)
+            reconstruct_rounded_numbers_scalar(x, digits, rounding, threshold, symmetric)
         })
         .collect()
         // this is the root, we need to have it zip across multiple rounding options, returning a

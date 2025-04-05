@@ -29,7 +29,7 @@ use crate::grim::grim_rust;
     show_rec = false,
     symmetric = false,
     items = None, 
-    rounding = vec!["up_or_down".to_string()], 
+    rounding = "up_or_down".to_string(), 
     threshold = 5.0, 
     tolerance = f64::EPSILON.powf(0.5),
     silence_default_warning = false,
@@ -44,7 +44,7 @@ pub fn grim_map_pl(
     show_rec: bool,
     symmetric: bool,
     items: Option<Vec<u32>>, 
-    rounding: Vec<String>, 
+    rounding: String, 
     threshold: f64, 
     tolerance: f64,
     silence_default_warning: bool,
@@ -52,7 +52,7 @@ pub fn grim_map_pl(
 ) -> PyResult<(Vec<bool>, Option<Vec<usize>>)>
 {
     let df: DataFrame = pydf.into();
-    let rounds: Vec<&str> = rounding.iter().map(|s| &**s).collect(); 
+    //let rounds: Vec<&str> = rounding.iter().map(|s| &**s).collect(); 
 
     let warnings = py.import("warnings").unwrap();
     if (x_col == ColumnInput::Default(0)) & (n_col == ColumnInput::Default(1)) & !silence_default_warning {
@@ -203,7 +203,7 @@ pub fn grim_map_pl(
         Some(i) => i,
     };
 
-    let res = grim_rust(xs, ns.clone(), vec![percent, show_rec, symmetric], revised_items, rounds, threshold, tolerance);
+    let res = grim_rust(xs, ns.clone(), vec![percent, show_rec, symmetric], revised_items, rounding.as_str(), threshold, tolerance);
 
     // if the length of ns_err_inds is 0, ie if no errors occurred, our error return is Option<None>.
     // Otherwise, our error return is Option<ns_err_inds>

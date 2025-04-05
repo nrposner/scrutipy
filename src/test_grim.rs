@@ -10,7 +10,7 @@ pub mod tests {
             40,
             vec![false, false, false],
             1,
-            vec!["up_or_down"],
+            "up_or_down",
             5.0,
             f64::EPSILON.powf(0.5),
         );
@@ -24,7 +24,7 @@ pub mod tests {
             40,
             vec![false, false, false],
             1,
-            vec!["up_or_down"],
+            "up_or_down",
             5.0,
             f64::EPSILON.powf(0.5),
         );
@@ -38,7 +38,7 @@ pub mod tests {
             40,
             vec![false, false, false],
             2,
-            vec!["up_or_down"],
+            "up_or_down",
             5.0,
             f64::EPSILON.powf(0.5),
         );
@@ -52,7 +52,7 @@ pub mod tests {
             20,
             vec![false, true, false],
             1,
-            vec!["up_or_down"],
+            "up_or_down",
             5.0,
             f64::EPSILON.powf(0.5),
         );
@@ -66,7 +66,7 @@ pub mod tests {
             20,
             vec![false, true, false],
             1,
-            vec!["up"],
+            "up",
             5.0,
             f64::EPSILON.powf(0.5),
         );
@@ -89,7 +89,7 @@ pub mod tests {
             ns,
             vec![false, false, false],
             items,
-            vec!["up_or_down"],
+            "up_or_down",
             5.0,
             f64::EPSILON.powf(0.5),
         );
@@ -116,7 +116,7 @@ pub mod tests {
             ns,
             vec![true, false, false],
             items,
-            vec!["up_or_down"],
+            "up_or_down",
             5.0,
             f64::EPSILON.powf(0.5),
         );
@@ -135,7 +135,7 @@ pub mod tests {
         let val = grim_scalar(
             input,
             40,
-            vec!["up_or_down".to_string()],
+            "up_or_down".to_string(),
             1,
             false,
             false,
@@ -152,7 +152,7 @@ pub mod tests {
         let val = grim_scalar(
             input,
             40,
-            vec!["up_or_down".to_string()],
+            "up_or_down".to_string(),
             1,
             false,
             false,
@@ -170,7 +170,7 @@ pub mod tests {
         let _ = grim_scalar(
             input,
             40,
-            vec!["up_or_down".to_string()],
+            "up_or_down".to_string(),
             1,
             false,
             false,
@@ -188,7 +188,7 @@ pub mod tests {
             50,
             vec![false, false, false],
             1,
-            vec!["up_or_down"],
+            "up_or_down",
             5.0,
             f64::EPSILON.powf(0.5),
         );

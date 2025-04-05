@@ -242,7 +242,7 @@ mod tests {
         let val = reround(
             vec![2.9876, 8.78964, 6.98767],
             3,
-            vec!["up_or_down"],
+            "up_or_down",
             5.0,
             false,
         );
