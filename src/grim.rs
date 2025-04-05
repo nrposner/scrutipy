@@ -11,11 +11,11 @@ pub enum GRIMInput {
 /// arguments, because unlike R, Python requires that all the positional parameters be provided up
 /// front before optional arguments with defaults
 #[allow(clippy::too_many_arguments)]
-#[pyfunction(signature = (x, n, rounding = vec!["up_or_down".to_string()], items=1, percent = false, show_rec = false, threshold = 5.0, symmetric = false, tolerance = f64::EPSILON.powf(0.5)))]
+#[pyfunction(signature = (x, n, rounding = "up_or_down".to_string(), items=1, percent = false, show_rec = false, threshold = 5.0, symmetric = false, tolerance = f64::EPSILON.powf(0.5)))]
 pub fn grim_scalar(
     x: GRIMInput,
     n: u32,
-    rounding: Vec<String>,
+    rounding: String,
     items: u32,
     percent: bool,
     show_rec: bool,
@@ -31,14 +31,14 @@ pub fn grim_scalar(
     // turning the numeric possibility into a String, which we later turn into a &str to
     // pass into grim_scalar_rust()
 
-    let rounds: Vec<&str> = rounding.iter().map(|s| &**s).collect(); // idiomatic way to
+    //let round: &str = rounding.as_str();
                                                                      // turn Vec<String> to Vec<&str>
     let val = grim_scalar_rust(
         x.as_str(),
         n,
         vec![percent, show_rec, symmetric],
         items,
-        rounds,
+        rounding.as_str(),
         threshold,
         tolerance,
     );
@@ -77,7 +77,7 @@ pub fn grim_rust(
     ns: Vec<u32>,
     bool_params: Vec<bool>,
     items: Vec<u32>,
-    rounding: Vec<&str>,
+    rounding: &str,
     threshold: f64,
     tolerance: f64,
 ) -> Vec<bool> {
@@ -92,7 +92,7 @@ pub fn grim_rust(
                 *num,
                 bool_params.clone(),
                 *item,
-                rounding.clone(),
+                rounding,
                 threshold,
                 tolerance,
             )
@@ -118,7 +118,7 @@ pub fn grim_scalar_rust(
     n: u32,
     bool_params: Vec<bool>, // includes percent, show_rec, and symmetric
     items: u32,
-    rounding: Vec<&str>,
+    rounding: &str,
     threshold: f64,
     tolerance: f64,
 ) -> Result<GrimReturn, std::num::ParseFloatError> {
@@ -149,7 +149,7 @@ pub fn grim_scalar_rust(
         .collect();
     //note that this modifies in place, so we just use rec_x_upper as the input to grains_rounded
 
-    let grains_rounded = reround(conc, digits, rounding.clone(), threshold, symmetric);
+    let grains_rounded = reround(conc, digits, rounding, threshold, symmetric);
 
     let bools: Vec<bool> = grains_rounded
         .clone()
@@ -166,7 +166,7 @@ pub fn grim_scalar_rust(
 
         let length_2ers = ["up_or_down", "up_from_or_down_from", "ceiling_or_floor"];
 
-        if rounding.iter().any(|r| length_2ers.contains(r)) {
+        if length_2ers.contains(&rounding) {
             Ok(GrimReturn::List(
                 consistency,
                 rec_sum,
