@@ -182,6 +182,27 @@ pub fn grimmer_scalar(
 #[cfg(not(tarpaulin_include))]
 #[pyfunction(signature = (xs, sds, ns, rounding, items=vec![1], percent = false, show_reason = false, threshold = 5.0, symmetric = false, tolerance = f64::EPSILON.powf(0.5)))]
 #[allow(clippy::too_many_arguments)]
+/// Determines the possibility of standard deviations from given means and sample sizes using the A-GRIMMER algorithm.
+///
+/// This function implements L. Jung's adaptation of A. Allard's A-GRIMMER algorithm for testing the possibility of standard deviations. It processes multiple sets of means, standard deviations, and sample sizes, returning a boolean vector indicating the possibility for each set.
+///
+/// # Arguments
+/// * `xs` - A vector of strings representing the sample means. Trailing zeros are preserved by using strings.
+/// * `sds` - A vector of strings representing the sample standard deviations. Trailing zeros are preserved by using strings.
+/// * `ns` - A vector of unsigned integers representing the sample sizes.
+/// * `rounding` - A string specifying the method of rounding to be used.
+/// * `items` - A vector of unsigned integers representing the number of items. Default is a vector with a single element [1].
+/// * `percent` - A boolean indicating whether to treat the means as percentages. Default is false.
+/// * `show_reason` - A boolean indicating whether to print the reason for failure if the tests do not pass. Default is false.
+/// * `threshold` - A floating-point number representing the rounding threshold. Default is 5.0.
+/// * `symmetric` - A boolean indicating whether to use symmetric rounding. Default is false.
+/// * `tolerance` - A floating-point number representing the rounding tolerance, usually the square root of machine epsilon. Default is `f64::EPSILON.powf(0.5)`.
+///
+/// # Returns
+/// A vector of booleans where each element corresponds to a set of inputs, indicating whether the standard deviation is possible for that set.
+///
+/// # Panics
+/// The function will panic if the lengths of `xs`, `sds`, and `ns` do not match.
 pub fn grimmer(
     xs: Vec<String>,
     sds: Vec<String>,
