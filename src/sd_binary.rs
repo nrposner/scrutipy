@@ -18,13 +18,13 @@
 pub fn sd_binary_groups(zeros: u32, ones: u32) -> Result<f64, SdBinaryError> {
     // though we take in the counts as unsigned integers, we transform them into
     // floating point values in order to perform the
-    let n: f64 = zeros as f64 + ones as f64;
+    let n: f64 = f64::from(zeros) + f64::from(ones);
 
     if n < 2.0 {
         return Err(SdBinaryError::InsufficientObservationsError);
     }
     // sqrt((n / (n - 1)) * ((group_0 * group_1) / (n ^ 2)))
-    Ok((n / (n - 1.0) * ((zeros * ones) as f64 / n.powi(2))).sqrt())
+    Ok((n / (n - 1.0) * (f64::from(zeros * ones) / n.powi(2))).sqrt())
 
     //sqrt((n / (n - 1)) * ((group_0 * group_1) / (n ^ 2)))
 }
@@ -58,7 +58,7 @@ pub enum SdBinaryError {
 ///     If there are more observations in the zero condition than in the total
 ///     If the total number of observations is not greater than one
 pub fn sd_binary_0_n(zeros: u32, n: u32) -> Result<f64, SdBinaryError> {
-    let ones: f64 = n as f64 - zeros as f64;
+    let ones: f64 = f64::from(n) - f64::from(zeros);
 
     if n < zeros {
         return Err(SdBinaryError::ObservationCountError(zeros, n));
@@ -68,7 +68,7 @@ pub fn sd_binary_0_n(zeros: u32, n: u32) -> Result<f64, SdBinaryError> {
         return Err(SdBinaryError::InsufficientObservationsError);
     }
 
-    Ok(((n as f64 / (n - 1) as f64) * ((zeros as f64 * ones) / (n as f64).powi(2))).sqrt())
+    Ok(((f64::from(n) / f64::from(n - 1) ) * ((f64::from(zeros) * ones) / (f64::from(n) ).powi(2))).sqrt())
 }
 /// Returns the standard deviation of binary variables from the count of one values and the total
 ///
@@ -86,7 +86,7 @@ pub fn sd_binary_0_n(zeros: u32, n: u32) -> Result<f64, SdBinaryError> {
 ///     If there are more observations in the one condition than in the total
 ///     If the total number of observations is not greater than one
 pub fn sd_binary_1_n(ones: u32, n: u32) -> Result<f64, SdBinaryError> {
-    let zeros: f64 = n as f64 - ones as f64;
+    let zeros: f64 = f64::from(n) - f64::from(ones);
 
     if n < ones {
         return Err(SdBinaryError::ObservationCountError(ones, n));
@@ -96,8 +96,7 @@ pub fn sd_binary_1_n(ones: u32, n: u32) -> Result<f64, SdBinaryError> {
         return Err(SdBinaryError::InsufficientObservationsError);
     }
 
-    //((n / (n - 1)) as f64).sqrt() * ((zeros * ones as f64) / (n as f64).powi(2))
-    Ok(((n as f64 / (n - 1) as f64) * ((zeros * ones as f64) / (n as f64).powi(2))).sqrt())
+    Ok(((f64::from(n) / f64::from(n - 1) ) * ((zeros * f64::from(ones) ) / (f64::from(n) ).powi(2))).sqrt())
 }
 /// Returns the standard deviation of binary variables from the mean and the total
 ///
@@ -124,7 +123,7 @@ pub fn sd_binary_mean_n(mean: f64, n: u32) -> Result<f64, SdBinaryError> {
         return Err(SdBinaryError::InvalidBinaryError);
     }
 
-    Ok(((n as f64 / (n - 1) as f64) * (mean * (1.0 - mean))).sqrt())
+    Ok(((f64::from(n) / f64::from(n - 1) ) * (mean * (1.0 - mean))).sqrt())
 }
 
 #[cfg(test)]

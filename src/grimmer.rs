@@ -79,9 +79,9 @@ pub fn grimmer_scalar(
 
     let x: f64 = x.parse().unwrap();
 
-    let sum = x * n_items as f64;
+    let sum = x * f64::from(n_items) ;
     let sum_real = rust_round(sum, 0);
-    let x_real = sum_real / n_items as f64;
+    let x_real = sum_real / f64::from(n_items) ;
 
     if !pass_grim {
         if show_rec {
@@ -101,9 +101,9 @@ pub fn grimmer_scalar(
     let sd_upper = sd + p10_frac;
 
     let sum_squares_lower =
-        ((n - 1) as f64 * sd_lower.powi(2) + n as f64 * x_real.powi(2)) * items.pow(2) as f64;
+        (f64::from(n - 1) * sd_lower.powi(2) + f64::from(n) * x_real.powi(2)) * f64::from(items.pow(2)) ;
     let sum_squares_upper =
-        ((n - 1) as f64 * sd_upper.powi(2) + n as f64 * x_real.powi(2)) * items.pow(2) as f64;
+        (f64::from(n - 1) * sd_upper.powi(2) + f64::from(n) * x_real.powi(2)) * f64::from(items.pow(2)) ;
 
     let pass_test1: bool = sum_squares_lower.ceil() <= sum_squares_upper.floor();
 

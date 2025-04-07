@@ -137,10 +137,10 @@ pub fn grim_scalar_rust(
 
     let n_items = n * items;
 
-    let rec_sum = x_num * n_items as f64;
+    let rec_sum = x_num * f64::from(n_items) ;
 
-    let rec_x_upper = dustify(rec_sum.ceil() / n_items as f64);
-    let rec_x_lower = dustify(rec_sum.floor() / n_items as f64);
+    let rec_x_upper = dustify(rec_sum.ceil() / f64::from(n_items) );
+    let rec_x_lower = dustify(rec_sum.floor() / f64::from(n_items) );
 
     let conc: Vec<f64> = rec_x_upper
         .iter()
