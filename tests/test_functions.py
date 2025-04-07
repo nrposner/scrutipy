@@ -5,7 +5,8 @@ import pandas as pd
 import polars as pl
 from scrutipy import grim_map
 import pytest
-from scrutipy import closure;
+from scrutipy import closure
+from scrutipy import grimmer
 
 def test_grim_1():
     result = grim_scalar("5.19", 40)
@@ -150,3 +151,12 @@ def test_closure_568():
 
 def test_closure_empty():
     assert not closure(10.0, 2.0, 3, 1, 5, 0.1, 0.1)
+
+def test_grimmer_1():
+    b = grimmer(["1.03"],
+            ["0.41"],
+            [40],
+            "up_or_down",
+            show_reason = True
+        )[0]
+    assert not b
