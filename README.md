@@ -50,8 +50,6 @@ Implement DEBIT
 
 Implement SPRITE
 
-Implement CORVIDS or other deterministic diophantine data reconstruction algorithm. 
-
 
 # Acknowledgements
 
