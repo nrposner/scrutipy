@@ -26,6 +26,16 @@ bools, errors = grim_map(df, 1, 2)
 # list([True, False, False, False, False, True, False, True, False, False, True, False])
 ```
 
+closure(): Implements the CLOSURE algorithm for recovering integer data from summary statistics. Any data which can be represented as integers on a bounded range, such as Likert scores, can be provably reconstructed using the mean, standard deviation, count, and range. 
+This function replaces the CORVIDS algorithm, which relied on more advanced mathematics packages, with a simpler and faster algorithm. 
+Note that even with CLOSURE's performance gains, the necessary time and compute to reconstruct data increases rapidly as range and count increase. 
+```
+> results = closure(3.5, 1.2, 50, 0, 7, 0.05, 0.005) # reconstruct possible datasets with a mean of 3.5, sd of 0.57, n = 100, inclusive range from 0 to 7. We set the rounding error for the mean to 0.05 and for sd to 0.005
+
+> len(results)
+7980 # there are 7980 possible datasets with these characteristics.
+```
+
 # Roadmap
 
 Expand documentation
