@@ -4,15 +4,15 @@ use crate::utils::{dustify, reround};
 use crate::utils::{decimal_places_scalar, reconstruct_sd_scalar};
 use pyo3::pyfunction;
 
-#[pyfunction()]
+#[pyfunction(signature = (
+    x, sd, n, formula = "mean_n", rounding = "up_or_down", threshold = 5.0, symmetric = false, show_rec = false
+))]
 #[allow(clippy::too_many_arguments)]
 #[allow(unused_variables)]
 pub fn debit_scalar(
     x: &str, 
     sd: &str, 
     n: u32, 
-    group_0: bool, 
-    group_1: bool, 
     formula: &str, 
     rounding: &str, 
     threshold: f64, 
@@ -22,9 +22,7 @@ pub fn debit_scalar(
     let table = debit_table(
         x,
         sd, 
-        n, 
-        group_0, 
-        group_1, 
+        n,
         formula, 
         rounding, 
         threshold,
@@ -145,8 +143,6 @@ fn debit_table(
     x: &str, 
     sd: &str, 
     n: u32, 
-    group_0: bool, 
-    group_1: bool, 
     formula: &str, 
     rounding: &str, 
     threshold: f64, 
