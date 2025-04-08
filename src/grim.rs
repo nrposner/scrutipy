@@ -1,5 +1,8 @@
+use std::num::ParseFloatError;
+
 use crate::utils::{decimal_places_scalar, dustify, reround};
 use pyo3::{pyfunction, FromPyObject};
+use thiserror::Error;
 
 #[derive(FromPyObject)]
 pub enum GRIMInput {
@@ -82,7 +85,7 @@ pub fn grim_rust(
     tolerance: f64,
 ) -> Vec<bool> {
 
-    let vals: Vec<Result<GrimReturn, std::num::ParseFloatError>> = xs
+    let vals: Vec<Result<GrimReturn, GrimScalarError>> = xs
         .iter()
         .zip(ns.iter())
         .zip(items.iter())
@@ -109,6 +112,13 @@ pub fn grim_rust(
         .collect()
 }
 
+#[derive(Debug, Error)]
+pub enum GrimScalarError {
+    #[error("Could not parse x into a number")]
+    ParseFloatError,
+    #[error("Could not extract decimal places")]
+    DecimalNullError(String),
+}
 /// Performs GRIM test of a single number
 ///
 /// We test whether the provided mean is within a plausible rounding of any possible means given
@@ -121,14 +131,22 @@ pub fn grim_scalar_rust(
     rounding: &str,
     threshold: f64,
     tolerance: f64,
-) -> Result<GrimReturn, std::num::ParseFloatError> {
+) -> Result<GrimReturn, GrimScalarError> {
     let percent: bool = bool_params[0];
     let show_rec: bool = bool_params[1];
     let symmetric: bool = bool_params[2];
 
-    let mut x_num: f64 = x.parse()?;
+    // let mut x_num: f64 = x.parse()?;
 
-    let mut digits: i32 = decimal_places_scalar(Some(x), ".").unwrap();
+    let Ok(mut x_num): Result<f64, ParseFloatError> = x.parse() else {
+        return Err(GrimScalarError::ParseFloatError)
+    };
+
+    //let mut digits: i32 = decimal_places_scalar(Some(x), ".").unwrap();
+
+    let Some(mut digits): Option<i32> = decimal_places_scalar(Some(x), ".") else {
+        return Err(GrimScalarError::DecimalNullError("".to_string()));
+    };
 
     if percent {
         x_num /= 100.0;
@@ -190,7 +208,7 @@ pub fn is_near(num_1: f64, num_2: f64, tolerance: f64) -> bool {
 
 /// Automatically unpacks and tests the output of grim_scalar_rust and checks whether its main bool
 /// result matches the expected bool
-pub fn grim_tester(grim_result: Result<GrimReturn, std::num::ParseFloatError>, expected: bool) {
+pub fn grim_tester(grim_result: Result<GrimReturn, GrimScalarError>, expected: bool) {
     match grim_result {
         Ok(grim_return) => match grim_return {
             GrimReturn::Bool(b) => match expected {
