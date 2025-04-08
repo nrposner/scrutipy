@@ -31,7 +31,8 @@ pub fn debit_scalar(
     );
 
     match table {
-        DebitTables::DebitTable(debit_table) => debit_table.consistency,
+        DebitTables::DebitTable(debit_table) => debit_table.consistency
+        ,
         DebitTables::DebitTableVerbose(debit_table_verbose) => debit_table_verbose.consistency,
     }
 }
@@ -152,17 +153,15 @@ fn debit_table(
     let digits_x = decimal_places_scalar(Some(x), ".");
     let digits_sd = decimal_places_scalar(Some(sd), ".");
 
-
     let x_num: f64 = x.parse().unwrap();
     let sd_num: f64 = sd.parse().unwrap();
 
-
-    let x_unrounded = unround(x, rounding, f64::EPSILON.powf(0.5)).unwrap();
+    let x_unrounded = unround(x, rounding, 5.0).unwrap();
 
     let x_lower = x_unrounded.lower.to_string();
     let x_upper = x_unrounded.upper.to_string();
 
-    let sd_unrounded = unround(sd, rounding, f64::EPSILON.powf(0.5)).unwrap();
+    let sd_unrounded = unround(sd, rounding, 5.0).unwrap();
 
     let sd_lower = sd_unrounded.lower;
     let sd_upper = sd_unrounded.upper;
@@ -183,9 +182,16 @@ fn debit_table(
     sd_rec_lower.append(&mut sd_rec_upper);
 
     let sd_lower_test = dustify(sd_lower);
-    let sd_rec_both_test: Vec<_> = sd_rec_lower.iter().flat_map(|x| dustify(*x)).collect();
+
+
+    // This part might be the issue, we didn't come back to it after silencing some errors
+    
+
+    let sd_rec_both_test: Vec<f64> = sd_rec_lower.iter().flat_map(|x| dustify(*x)).collect();
     // we just concatenate the latter into the former
     let sd_upper_test = dustify(sd_upper);
+
+    // this is very restrictive, might be the issue 
 
     // Determine consistency based on inclusion flags and test results
     let consistency = if sd_incl_lower && sd_incl_upper {
@@ -298,6 +304,13 @@ pub mod tests {
     fn debit_test_1() {
         assert!(!debit_scalar("0.36", "0.11", 20,  "mean_n", "up_or_down", 5.0, false, false))
     }
+
+    #[test]
+    fn debit_test_2() {
+        assert!(debit_scalar("0.11", "0.31", 40,  "mean_n", "up_or_down", 5.0, false, false))
+    } // this test is not working as expected 
+    // maybe it's that it's a True result, search for a True result that we can correctly output
+    // maybe something is stopping us from outputting any True at all
 }
 
 
