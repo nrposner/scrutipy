@@ -212,7 +212,7 @@ fn debit_table(
 }
 
 #[derive(Debug, Error)]
-pub enum RoudingBoundError {
+pub enum RoundingBoundError {
     #[error("The input x is 0")]
     ZeroError,
     #[error("The rounding type provided is not valid")]
@@ -224,7 +224,7 @@ pub fn rounding_bounds(
     x_num:f64, 
     d_var: f64, 
     d: f64
-) -> Result<(f64, f64, &'static str, &'static str), RoudingBoundError> {
+) -> Result<(f64, f64, &'static str, &'static str), RoundingBoundError> {
 
     if rounding == "trunc" {
         if x_num > 0.0 {
@@ -240,7 +240,7 @@ pub fn rounding_bounds(
         } else if x_num < 0.0 {
             Ok((x_num, x_num + (2.0 * d), "<=", "<"))
         } else {
-            Err(RoudingBoundError::ZeroError)
+            Err(RoundingBoundError::ZeroError)
         }
     } else {
         match rounding {
@@ -250,12 +250,12 @@ pub fn rounding_bounds(
             "even" => Ok((x_num - d, x_num + d, "<", "<")),
             "ceiling" => Ok((x_num - (2.0 * d), x_num, "<", "<=")), 
             "floor" => Ok((x_num, x_num + (2.0 * d), "<=", "<")),
-            _ => Err(RoudingBoundError::RoundingError)
+            _ => Err(RoundingBoundError::RoundingError)
         }
     }
 }
 
-fn unround(x: &str, rounding: &str, threshold: f64) -> Result<UnroundReturn, RoudingBoundError> {
+fn unround(x: &str, rounding: &str, threshold: f64) -> Result<UnroundReturn, RoundingBoundError> {
     let digits = decimal_places_scalar(Some(x), ".");
     let p10: f64 = 10.0f64.powi(digits.unwrap() + 1);
     let d = 5.0 / p10;
