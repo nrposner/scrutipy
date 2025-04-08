@@ -1,22 +1,142 @@
 use core::f64;
 use thiserror::Error;
 use crate::utils::{dustify, reround};
-#[allow(unused_imports)]
 use crate::utils::{decimal_places_scalar, reconstruct_sd_scalar};
+use pyo3::pyfunction;
 
+#[pyfunction()]
+#[allow(clippy::too_many_arguments)]
+#[allow(unused_variables)]
+pub fn debit_scalar(
+    x: &str, 
+    sd: &str, 
+    n: u32, 
+    group_0: bool, 
+    group_1: bool, 
+    formula: &str, 
+    rounding: &str, 
+    threshold: f64, 
+    symmetric: bool, 
+    show_rec: bool
+) -> bool {
+    let table = debit_table(
+        x,
+        sd, 
+        n, 
+        group_0, 
+        group_1, 
+        formula, 
+        rounding, 
+        threshold,
+        symmetric,
+        show_rec,
+    );
 
+    match table {
+        DebitTables::DebitTable(debit_table) => debit_table.consistency,
+        DebitTables::DebitTableVerbose(debit_table_verbose) => debit_table_verbose.consistency,
+    }
+}
 
-// fn debit_scalar(x: &str, sd: &str, n: u32, formula: &str, rounding: &str, threshold: f64, symmetric: bool) {
-    // //check_debit_inputs_all(x, sd)
-   //  
-    // out <- debit_table(
-    // x = x, sd = sd, n = n,
-    // formula = formula, rounding = rounding,
-    // threshold = threshold, symmetric = symmetric
-    // )
-// 
-  // return out.0
-// }
+#[allow(dead_code)]
+enum DebitTables {
+    DebitTable(DebitTable),
+    DebitTableVerbose(DebitTableVerbose)
+}
+
+impl DebitTables {
+    fn new_debit_table(sd: String, x: String, n: u32, consistency: bool) -> Self {
+        DebitTables::DebitTable(DebitTable::new(sd, x, n, consistency))
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn new_debit_table_verbose(
+        sd: String,
+        x: String,
+        n: u32,
+        consistency: bool,
+        rounding: String,
+        sd_lower: f64,
+        sd_incl_lower: bool,
+        sd_incl_upper: bool,
+        sd_upper: f64,
+        x_lower: String,
+        x_incl_lower: bool,
+        x_upper: String,
+        x_incl_upper: bool,
+    ) -> Self {
+        DebitTables::DebitTableVerbose(DebitTableVerbose::new(
+            sd, x, n, consistency, rounding, sd_lower, sd_incl_lower, sd_incl_upper, sd_upper,
+            x_lower, x_incl_lower, x_upper, x_incl_upper,
+        ))
+    }
+}
+
+#[allow(dead_code)]
+struct DebitTable {
+    sd: String,
+    x: String, 
+    n: u32, 
+    consistency: bool
+}
+
+impl DebitTable {
+    pub fn new(sd: String, x: String, n: u32, consistency: bool) -> Self {
+        DebitTable { sd, x, n, consistency }
+    }
+}
+
+#[allow(dead_code)]
+struct DebitTableVerbose {
+    sd: String,
+    x: String,
+    n: u32, 
+    consistency: bool, 
+    rounding: String, 
+    sd_lower: f64, 
+    sd_incl_lower: bool, 
+    sd_incl_upper: bool, 
+    sd_upper: f64, 
+    x_lower: String, 
+    x_incl_lower: bool, 
+    x_upper: String, 
+    x_incl_upper: bool
+}
+
+impl DebitTableVerbose {
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        sd: String,
+        x: String,
+        n: u32,
+        consistency: bool,
+        rounding: String,
+        sd_lower: f64,
+        sd_incl_lower: bool,
+        sd_incl_upper: bool,
+        sd_upper: f64,
+        x_lower: String,
+        x_incl_lower: bool,
+        x_upper: String,
+        x_incl_upper: bool,
+    ) -> Self {
+        DebitTableVerbose {
+            sd,
+            x,
+            n,
+            consistency,
+            rounding,
+            sd_lower,
+            sd_incl_lower,
+            sd_incl_upper,
+            sd_upper,
+            x_lower,
+            x_incl_lower,
+            x_upper,
+            x_incl_upper,
+        }
+    }
+}
 
 #[allow(clippy::too_many_arguments)]
 #[allow(dead_code)]
@@ -32,7 +152,7 @@ fn debit_table(
     threshold: f64, 
     symmetric: bool, 
     show_rec: bool
-) -> bool {
+) -> DebitTables {
     let digits_x = decimal_places_scalar(Some(x), ".");
     let digits_sd = decimal_places_scalar(Some(sd), ".");
 
@@ -86,7 +206,11 @@ fn debit_table(
         sd_rec_both_test.iter().any(|&x| sd_upper_test.iter().any(|&y| x < y))
     };
 
-    consistency
+    if show_rec {
+        DebitTables::new_debit_table_verbose(sd.to_string(), x.to_string(), n, consistency, rounding.to_string(), sd_lower, sd_incl_lower, sd_incl_upper, sd_upper, x_lower, x_incl_lower, x_upper, x_incl_upper)
+    } else {
+        DebitTables::new_debit_table(sd.to_string(), x.to_string(), n, consistency)
+    }
     
 
 }
