@@ -183,15 +183,9 @@ fn debit_table(
 
     let sd_lower_test = dustify(sd_lower);
 
-
-    // This part might be the issue, we didn't come back to it after silencing some errors
-    
-
     let sd_rec_both_test: Vec<f64> = sd_rec_lower.iter().flat_map(|x| dustify(*x)).collect();
     // we just concatenate the latter into the former
     let sd_upper_test = dustify(sd_upper);
-
-    // this is very restrictive, might be the issue 
 
     // Determine consistency based on inclusion flags and test results
     let consistency = if sd_incl_lower && sd_incl_upper {
@@ -209,12 +203,29 @@ fn debit_table(
     };
 
     if show_rec {
-        DebitTables::new_debit_table_verbose(sd.to_string(), x.to_string(), n, consistency, rounding.to_string(), sd_lower, sd_incl_lower, sd_incl_upper, sd_upper, x_lower, x_incl_lower, x_upper, x_incl_upper)
+        DebitTables::new_debit_table_verbose(
+            sd.to_string(), 
+            x.to_string(), 
+            n, 
+            consistency, 
+            rounding.to_string(), 
+            sd_lower, 
+            sd_incl_lower, 
+            sd_incl_upper, 
+            sd_upper, 
+            x_lower, 
+            x_incl_lower, 
+            x_upper, 
+            x_incl_upper
+        )
     } else {
-        DebitTables::new_debit_table(sd.to_string(), x.to_string(), n, consistency)
+        DebitTables::new_debit_table(
+            sd.to_string(), 
+            x.to_string(), 
+            n, 
+            consistency
+        )
     }
-    
-
 }
 
 #[derive(Debug, Error)]
@@ -278,9 +289,6 @@ fn unround(x: &str, rounding: &str, threshold: f64) -> Result<UnroundReturn, Rou
     let sign_upper = bounds.3;
 
     Ok(UnroundReturn::new(lower, sign_lower == "<=", sign_upper == "<=", upper))
-
-
-
 }
 
 struct UnroundReturn {
@@ -308,9 +316,7 @@ pub mod tests {
     #[test]
     fn debit_test_2() {
         assert!(debit_scalar("0.11", "0.31", 40,  "mean_n", "up_or_down", 5.0, false, false))
-    } // this test is not working as expected 
-    // maybe it's that it's a True result, search for a True result that we can correctly output
-    // maybe something is stopping us from outputting any True at all
+    } 
 }
 
 
