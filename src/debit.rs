@@ -154,7 +154,7 @@ fn debit_table(
 
 
     let x_num: f64 = x.parse().unwrap();
-    let sd_num: u32 = sd.parse().unwrap();
+    let sd_num: f64 = sd.parse().unwrap();
 
 
     let x_unrounded = unround(x, rounding, f64::EPSILON.powf(0.5)).unwrap();
@@ -210,8 +210,6 @@ fn debit_table(
     
 
 }
-    
-
 
 #[derive(Debug, Error)]
 pub enum RoudingBoundError {
@@ -292,6 +290,15 @@ impl UnroundReturn {
     }
 }
 
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+    #[test]
+    fn debit_test_1() {
+        assert!(!debit_scalar("0.36", "0.11", 20,  "mean_n", "up_or_down", 5.0, false, false))
+    }
+}
 
 
 
