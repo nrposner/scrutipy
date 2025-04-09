@@ -48,7 +48,7 @@ pub fn grimmer_scalar(
     // in the original, items does not work as intended, message Jung about this once I have more
     // time
     if items != 1 {
-        unimplemented!()
+        todo!("GRIMMER for items > 1 is not yet implemented")
     };
 
     let digits_sd = decimal_places_scalar(Some(sd), ".").unwrap();
@@ -333,7 +333,7 @@ pub mod test {
             "2.57",
             30,
             2, // in current version, item > 1 is not covered, should return an
-            // unimplemented! panic error
+            // todo! panic error
             vec![false, true, false],
             "up_or_down",
             5.0,
