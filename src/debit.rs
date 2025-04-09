@@ -24,6 +24,47 @@ impl From<DebitError> for PyErr {
     }
 }
 
+/// Computes consistency using the Descriptive Binary test (DEBIT) for means and standard
+/// deviations. 
+///
+/// This function takes vectors of `xs`, `sds`, and `ns` along with several optional parameters
+/// to calculate the debit consistency. It returns a vector of boolean values indicating
+/// the consistency for each set of inputs.
+///
+/// # Arguments
+///
+/// * `xs` - A vector of strings representing the x values, which must be parsed into
+/// floating-point numbers.
+/// * `sds` - A vector of strings representing the standard deviation values, which must be parsed
+/// into floating-point numbers.
+/// * `ns` - A vector of unsigned integers representing the sample sizes.
+/// * `formula` - A string slice that specifies the formula to use (default is "mean_n").
+/// NOTE: only the mean_n formula is currently working. Other formulas will be implemented in later
+/// versions
+/// * `rounding` - A string slice that specifies the rounding method (default is "up_or_down").
+/// * `threshold` - A floating-point number representing the threshold for rounding (default is 5.0).
+/// * `symmetric` - A boolean indicating whether the rounding should be symmetric (default is false).
+/// * `show_rec` - A boolean indicating whether to show the reconstructed values (default is false).
+///
+/// # Returns
+///
+/// Returns a `PyResult` containing a vector of boolean values. Each boolean indicates whether
+/// the corresponding set of inputs is consistent according to the specified parameters.
+///
+/// # Errors
+///
+/// Returns a `PyValueError` if the lengths of `xs`, `sds`, and `ns` are not equal. This ensures
+/// that each element in the vectors corresponds to a complete set of inputs for the calculation.
+///
+/// # Example
+///
+/// ```rust
+/// let xs = vec!["0.36".to_string(), "0.11".to_string()];
+/// let sds = vec!["0.11".to_string(), "0.31".to_string()];
+/// let ns = vec![20, 40];
+/// let result = debit(xs, sds, ns, "mean_n", "up_or_down", 5.0, false, false);
+/// assert!(result.is_ok());
+/// assert!(result == vec![false, true]) 
 #[pyfunction(signature = (
     xs, sds, ns, formula = "mean_n", rounding = "up_or_down", threshold = 5.0, symmetric = false, show_rec = false
 ))]
@@ -38,6 +79,10 @@ pub fn debit(
     symmetric: bool,
     show_rec: bool
 ) -> PyResult<Vec<bool>> {
+
+    if (formula != "mean_n") & (formula != "mean") {
+        todo!("Formulas other than mean_n are not yet implemented")
+    };
 
     if xs.len() != sds.len() || sds.len() != ns.len() {
         return Err(DebitError::LengthError(xs.len(), sds.len(), ns.len()).into());
