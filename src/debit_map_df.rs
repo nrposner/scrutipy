@@ -11,7 +11,7 @@ use crate::grim_map_df::{ColumnInput, coerce_string_to_u32, coerce_to_u32, NsPar
 
 #[allow(clippy::too_many_arguments)]
 #[pyfunction(signature = (
-    pydf, x_col, sd_col, n_col, show_rec = false, symmetric = false, formula = "mean_n".to_string(), rounding = "up_or_down".to_string(), threshold = 5.0, silence_default_warning = false, silence_numeric_warning = false
+    pydf, x_col = ColumnInput::Default(0), sd_col = ColumnInput::Default(1), n_col = ColumnInput::Default(2), show_rec = false, symmetric = false, formula = "mean_n".to_string(), rounding = "up_or_down".to_string(), threshold = 5.0, silence_default_warning = false, silence_numeric_warning = false
 ))]
 pub fn debit_map_pl(
     py: Python, 
@@ -32,10 +32,10 @@ pub fn debit_map_pl(
     //let rounds: Vec<&str> = rounding.iter().map(|s| &**s).collect(); 
 
     let warnings = py.import("warnings").unwrap();
-    if (x_col == ColumnInput::Default(0)) & (n_col == ColumnInput::Default(1)) & !silence_default_warning {
+    if (x_col == ColumnInput::Default(0)) & (sd_col == ColumnInput::Default(1)) & (n_col == ColumnInput::Default(2)) & !silence_default_warning {
         warnings.call_method1(
             "warn",
-            (PyString::new(py, "The columns `x_col` and `n_col` haven't been changed from their defaults. \n Please ensure that the first and second columns contain the xs and ns respectively. \n To silence this warning, set `silence_default_warning = True`."),),
+            (PyString::new(py, "The columns `x_col`, `sd_col`, and `n_col` haven't been changed from their defaults. \n Please ensure that the first and second columns contain the xs and ns respectively. \n To silence this warning, set `silence_default_warning = True`."),),
         ).unwrap();
     };
 
@@ -60,6 +60,28 @@ pub fn debit_map_pl(
         return Err(PyTypeError::new_err("The x_col column is empty."));
     }
 
+    let sds: &Series = match sd_col {
+        ColumnInput::Name(name) => df.column(&name).map_err(|_| PyValueError::new_err(format!(
+            "The sd_col column named '{}' not found in the provided dataframe. Available columns: {:?}", 
+            name,
+            df.get_column_names()
+        )))?
+            .as_series()
+            .ok_or_else(|| PyTypeError::new_err(format!("The column '{}' could not be interpreted as a Series", name)))?,
+
+        ColumnInput::Index(ind) | ColumnInput::Default(ind) => df.get_columns().get(ind).ok_or_else(|| PyIndexError::new_err(format!(
+            "The sd_col column index '{}' is out of bounds for the provided dataframe, which has {} columns",
+            ind,
+            df.width()
+        )))?
+            .as_series()
+            .ok_or_else(|| PyTypeError::new_err("Columns could not be interpreted as a Series"))?,
+    };
+
+    if sds.len() == 0 {
+        return Err(PyTypeError::new_err("The sd_col column is empty"));
+    }
+
     let ns: &Series = match n_col {
         ColumnInput::Name(name) => df.column(&name).map_err(|_| PyValueError::new_err(format!(
             "The n_col column named '{}' not found in the provided dataframe. Available columns: {:?}", 
@@ -80,28 +102,6 @@ pub fn debit_map_pl(
 
     if ns.len() == 0 {
         return Err(PyTypeError::new_err("The n_col column is empty."));
-    }
-
-    let sds: &Series = match sd_col {
-        ColumnInput::Name(name) => df.column(&name).map_err(|_| PyValueError::new_err(format!(
-            "The n_col column named '{}' not found in the provided dataframe. Available columns: {:?}", 
-            name,
-            df.get_column_names()
-        )))?
-            .as_series()
-            .ok_or_else(|| PyTypeError::new_err(format!("The column '{}' could not be interpreted as a Series", name)))?,
-
-        ColumnInput::Index(ind) | ColumnInput::Default(ind) => df.get_columns().get(ind).ok_or_else(|| PyIndexError::new_err(format!(
-            "The sd_col column index '{}' is out of bounds for the provided dataframe, which has {} columns",
-            ind,
-            df.width()
-        )))?
-            .as_series()
-            .ok_or_else(|| PyTypeError::new_err("Columns could not be interpreted as a Series"))?,
-    };
-
-    if sds.len() == 0 {
-        return Err(PyTypeError::new_err("The sd_col column is empty"));
     }
 
     let xs_result = match xs.dtype() {
@@ -141,7 +141,7 @@ pub fn debit_map_pl(
 
     let sds_result = match sds.dtype() {
         DataType::String => Ok(
-            xs.str().unwrap()
+            sds.str().unwrap()
                 .into_iter()
                 .map(|opt| opt.unwrap_or("").to_string())
                 .collect::<Vec<String>>()
@@ -162,7 +162,7 @@ pub fn debit_map_pl(
                     (PyString::new(py, "The column `sd_col` is made up of numeric types instead of strings. \n Understand that you may be losing trailing zeros by using a purely numeric type. \n To silence this warning, set `silence_numeric_warning = True`."),),
                 ).unwrap();
             }
-            xs.iter().map(|x| x.to_string()).collect::<Vec<String>>()}),
+            sds.iter().map(|sd| sd.to_string()).collect::<Vec<String>>()}),
         _ => Err("Input sds column is neither a String nor numeric type"),
     };
 
@@ -213,18 +213,12 @@ pub fn debit_map_pl(
         Ok(vs) => vs,
     };
 
-    //let sds_vec = match sds_result {
-    //    Err(_) => return Err(PyTypeError::new_err("The sd_col column is composed of neither strings nor numeric types. Please check the input types and the documentation.")),
-    //    Ok(vs) => vs,
-    //};
-
     let xs_temp: Vec<&str> = xs_vec.iter().map(|s| &**s).collect();
 
     let mut xs: Vec<String> = Vec::new();
     let mut sds: Vec<String> = Vec::new();
     let mut ns: Vec<u32> = Vec::new();
-    let mut ns_err_inds: Vec<usize> = Vec::new();
-    let mut sds_err_inds: Vec<usize> = Vec::new();
+    let mut err_inds: Vec<usize> = Vec::new();
 
     for (i, ((n_result, sds_result), x)) in ns_vec.iter().zip(sds_vec.iter()).zip(xs_temp.iter()).enumerate() {
         if let Ok(u) = n_result {
@@ -233,8 +227,7 @@ pub fn debit_map_pl(
             sds.push(sds_result.to_string())
             //sds.push(sds_result.parse::<f64>()?);
         } else {
-            ns_err_inds.push(i);
-            sds_err_inds.push(i);
+            err_inds.push(i);
         }
     }
 
@@ -253,9 +246,9 @@ pub fn debit_map_pl(
 
     // if the length of ns_err_inds is 0, ie if no errors occurred, our error return is Option<None>.
     // Otherwise, our error return is Option<ns_err_inds>
-    let err_output: Option<Vec<usize>> = match ns_err_inds.len() {
+    let err_output: Option<Vec<usize>> = match err_inds.len() {
         0 => None,
-        _ => Some(ns_err_inds),
+        _ => Some(err_inds),
     };
 
     Ok((res, err_output)) 
