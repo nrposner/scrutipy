@@ -7,6 +7,7 @@ from scrutipy import grim_map
 import pytest
 from scrutipy import closure
 from scrutipy import grimmer
+from scrutipy import debit
 from scrutipy import debit_map_pl
 from scrutipy import debit_map
 
@@ -162,6 +163,11 @@ def test_grimmer_1():
             show_reason = True
         )[0]
     assert not b
+
+def test_debit_1(): 
+    results = debit(["0.36", "0.11", "0.118974"], ["0.11", "0.31", "0.6784"], [20, 40, 100])
+    assert results == list([False, True, False])
+
 
 def test_debit_map_pl_1():
     df = pl.read_csv("data/debit_data.csv")
