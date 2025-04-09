@@ -23,7 +23,12 @@ df = pd.read_csv("data/pigs1.csv")
 # it may be necessary to explicitly convert your x column to string type in order to avoid losing trailing zeros. In the event that trailing zeros may be lost, the function will throw a warning 
 df["x"] = df["x"].astype(str) 
 bools, errors = grim_map(df, 1, 2)
+
+print(bools)
 # list([True, False, False, False, False, True, False, True, False, False, True, False])
+
+print(errors)
+# None
 ```
 
 debit() implements the DEBIT test on 1d iterables (lists and arrays). 
@@ -50,7 +55,7 @@ print(bools)
 # list([True, True, True, False, True, True, True])
 
 print(errors)
-# list([])
+# None
 ```
 
 closure(): Implements the CLOSURE algorithm for recovering integer data from summary statistics. Any data which can be represented as integers on a bounded range, such as Likert scores, can be provably reconstructed using the mean, standard deviation, count, and range. 
