@@ -9,7 +9,10 @@ use pyo3_polars::PyDataFrame;
 use crate::debit::debit;
 use crate::grim_map_df::{ColumnInput, coerce_string_to_u32, coerce_to_u32, NsParsingError};
 
-#[pyfunction()]
+#[allow(clippy::too_many_arguments)]
+#[pyfunction(signature = (
+    pydf, x_col, sd_col, n_col, show_rec = false, symmetric = false, formula = "mean_n".to_string(), rounding = "up_or_down".to_string(), threshold = 5.0, silence_default_warning = false, silence_numeric_warning = false
+))]
 pub fn debit_map_pl(
     py: Python, 
     pydf: PyDataFrame, 
