@@ -4,6 +4,26 @@ use crate::utils::{dustify, reround};
 use crate::utils::{decimal_places_scalar, reconstruct_sd_scalar};
 use pyo3::pyfunction;
 
+#[pyfunction(signature = (
+    xs, sds, ns, formula = "mean_n", rounding = "up_or_down", threshold = 5.0, symmetric = false, show_rec = false
+))]
+#[allow(clippy::too_many_arguments)]
+pub fn debit(
+    xs: Vec<String>,
+    sds: Vec<String>,
+    ns: Vec<u32>,
+    formula: &str,
+    rounding: &str,
+    threshold: f64,
+    symmetric: bool,
+    show_rec: bool
+) -> Vec<bool> {
+
+    // error if these vectors are not the right length
+
+    xs.iter().zip(sds.iter()).zip(ns.iter()).map(|((x, sd), n)| debit_scalar(x.as_str(), sd.as_str(), *n, formula, rounding, threshold, symmetric, show_rec)).collect()
+}
+
 // adjust to also support other formulas using group0 and group1
 #[pyfunction(signature = (
     x, sd, n, formula = "mean_n", rounding = "up_or_down", threshold = 5.0, symmetric = false, show_rec = false
