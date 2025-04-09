@@ -4,11 +4,11 @@ use crate::utils::{dustify, reround};
 use crate::utils::{decimal_places_scalar, reconstruct_sd_scalar};
 use pyo3::pyfunction;
 
+// adjust to also support other formulas using group0 and group1
 #[pyfunction(signature = (
     x, sd, n, formula = "mean_n", rounding = "up_or_down", threshold = 5.0, symmetric = false, show_rec = false
 ))]
 #[allow(clippy::too_many_arguments)]
-#[allow(unused_variables)]
 pub fn debit_scalar(
     x: &str, 
     sd: &str, 
@@ -37,7 +37,6 @@ pub fn debit_scalar(
     }
 }
 
-#[allow(dead_code)]
 enum DebitTables {
     DebitTable(DebitTable),
     DebitTableVerbose(DebitTableVerbose)
@@ -138,8 +137,6 @@ impl DebitTableVerbose {
 }
 
 #[allow(clippy::too_many_arguments)]
-#[allow(dead_code)]
-#[allow(unused_variables)]
 fn debit_table(
     x: &str, 
     sd: &str, 
@@ -150,11 +147,11 @@ fn debit_table(
     symmetric: bool, 
     show_rec: bool
 ) -> DebitTables {
-    let digits_x = decimal_places_scalar(Some(x), ".");
+    //let digits_x = decimal_places_scalar(Some(x), ".");
     let digits_sd = decimal_places_scalar(Some(sd), ".");
 
-    let x_num: f64 = x.parse().unwrap();
-    let sd_num: f64 = sd.parse().unwrap();
+    //let x_num: f64 = x.parse().unwrap();
+    //let sd_num: f64 = sd.parse().unwrap();
 
     let x_unrounded = unround(x, rounding, 5.0).unwrap();
 
@@ -192,8 +189,11 @@ fn debit_table(
         sd_lower_test.iter().any(|&x| sd_rec_both_test.iter().any(|&y| x <= y)) &&
         sd_rec_both_test.iter().any(|&x| sd_upper_test.iter().any(|&y| x <= y))
     } else if sd_incl_lower && !sd_incl_upper {
-        sd_lower_test.iter().any(|&x| sd_rec_both_test.iter().any(|&y| x <= y)) &&
-        sd_rec_both_test.iter().any(|&x| sd_upper_test.iter().any(|&y| x < y))
+
+        let l1 = sd_lower_test.iter().any(|&x| sd_rec_both_test.iter().any(|&y| x <= y)); 
+        let l2 = sd_rec_both_test.iter().any(|&x| sd_upper_test.iter().any(|&y| x < y));
+
+        l1 && l2 
     } else if !sd_incl_lower && sd_incl_upper {
         sd_lower_test.iter().any(|&x| sd_rec_both_test.iter().any(|&y| x < y)) &&
         sd_rec_both_test.iter().any(|&x| sd_upper_test.iter().any(|&y| x <= y))
@@ -242,7 +242,6 @@ pub fn rounding_bounds(
     d_var: f64, 
     d: f64
 ) -> Result<(f64, f64, &'static str, &'static str), RoundingBoundError> {
-
     if rounding == "trunc" {
         if x_num > 0.0 {
             Ok((x_num, x_num + (2.0 * d), "<=", "<"))
@@ -317,11 +316,20 @@ pub mod tests {
     fn debit_test_2() {
         assert!(debit_scalar("0.11", "0.31", 40,  "mean_n", "up_or_down", 5.0, false, false))
     } 
+
+    #[test]
+    fn debit_test_3() {
+        assert!(!debit_scalar("0.118974", "0.6784", 100, "mean_n", "up_or_down", 5.0, false, false))
+    } 
+
+    #[test]
+    fn debit_test_4() {
+        assert!(debit_scalar("0.11", "0.31", 40,  "mean_n", "trunc", 5.0, false, false))
+    } 
+
+    #[test]
+    fn debit_test_5() {
+        assert!(debit_scalar("0.11", "0.31", 40,  "mean_n", "anti_trunc", 5.0, false, false))
+    } 
 }
-
-
-
-
-
-
 

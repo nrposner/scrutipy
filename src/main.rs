@@ -5,9 +5,9 @@ pub mod utils;
 pub mod debit;
 
 #[allow(unused_imports)]
-use utils::*;
+use crate::debit::debit_scalar;
 
 // use in future, commented out for the moment
 //env::set_var("RUST_BACKTRACE", "1");
-fn main() { }
+fn main() {}
 
