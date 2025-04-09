@@ -8,6 +8,7 @@ import pytest
 from scrutipy import closure
 from scrutipy import grimmer
 from scrutipy import debit_map_pl
+from scrutipy import debit_map
 
 def test_grim_1():
     result = grim_scalar("5.19", 40)
@@ -165,4 +166,11 @@ def test_grimmer_1():
 def test_debit_map_pl_1():
     df = pl.read_csv("data/debit_data.csv")
     bools, errors = debit_map_pl(df, 1, 2, 3, silence_numeric_warning = True) # necessary to specify the column indices in this case becase polars treats the index as the 0th column, which causes that issue
+    assert bools == list([True, True, True, False, True, True, True])
+
+def test_debit_map_pd():
+    df = pd.read_csv("data/debit_data.csv")
+    df["xs"] = df["xs"].astype(str)
+    df["sds"] = df["sds"].astype(str)
+    bools, errors = debit_map(df, 1, 2, 3)
     assert bools == list([True, True, True, False, True, True, True])
