@@ -29,7 +29,6 @@ pub fn debit_map_pl(
 ) -> PyResult<(Vec<bool>, Option<Vec<usize>>)>
 {
     let df: DataFrame = pydf.into();
-    //let rounds: Vec<&str> = rounding.iter().map(|s| &**s).collect(); 
 
     let warnings = py.import("warnings").unwrap();
     if (x_col == ColumnInput::Default(0)) & (sd_col == ColumnInput::Default(1)) & (n_col == ColumnInput::Default(2)) & !silence_default_warning {
@@ -166,7 +165,7 @@ pub fn debit_map_pl(
         _ => Err("Input sds column is neither a String nor numeric type"),
     };
 
-    // if the data type of xs is neither a string nor a numeric type which we could plausibly
+    // if the data type of sds is neither a string nor a numeric type which we could plausibly
     // convert into a string (albeit while possibly losing some trailing zeros) we return early
     // with an error, as there's nowhere for the program to progress from here. 
     let sds_vec = match sds_result {
@@ -231,20 +230,9 @@ pub fn debit_map_pl(
         }
     }
 
-    // since we can't set a default for items which is dependent on the size of another variable
-    // known at runtime, we wait until now to turn the default option into a vector of 1s the same
-    // length as the number of valid counts 
-    
-    //let revised_items = match items {
-    //    None => vec![1; xs.len()],
-    //    Some(i) => i,
-    //};
-
     let res = debit(xs, sds, ns, formula.as_str(), rounding.as_str(), threshold, symmetric, show_rec);
 
-    // let res = grim_rust(xs, ns.clone(), vec![percent, show_rec, symmetric], revised_items, rounding.as_str(), threshold, tolerance);
-
-    // if the length of ns_err_inds is 0, ie if no errors occurred, our error return is Option<None>.
+    // if the length of err_inds is 0, ie if no errors occurred, our error return is Option<None>.
     // Otherwise, our error return is Option<ns_err_inds>
     let err_output: Option<Vec<usize>> = match err_inds.len() {
         0 => None,
