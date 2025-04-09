@@ -351,5 +351,40 @@ pub mod tests {
     fn debit_test_5() {
         assert!(debit_scalar("0.11", "0.31", 40,  "mean_n", "anti_trunc", 5.0, false, false))
     } 
+
+    #[test]
+    fn debit_test_6() {
+        assert!(debit_scalar("0.53", "0.50", 1683, "mean_n", "up_or_down", 5.0, false, false))
+    }
+
+    #[test]
+    fn debit_test_7() {
+        assert!(debit_scalar("0.44", "0.50", 1683, "mean_n", "up_or_down", 5.0, false, false))
+    }
+
+    #[test]
+    fn debit_test_8() {
+        assert!(debit_scalar("0.77", "0.42", 1683, "mean_n", "up_or_down", 5.0, false, false))
+    }
+
+    #[test]
+    fn debit_test_9() {
+        assert!(!debit_scalar("0.19", "0.35", 1683, "mean_n", "up_or_down", 5.0, false, false))
+    }
+
+    #[test]
+    fn debit_test_10() {
+        assert!(debit_scalar("0.34", "0.47", 1683, "mean_n", "up_or_down", 5.0, false, false))
+    }
+
+    #[test]
+    fn debit_test_11() {
+        assert!(debit_scalar("0.93", "0.25", 1683, "mean_n", "up_or_down", 5.0, false, false))
+    }
+
+    #[test]
+    fn debit_test_12() {
+        assert!(debit_scalar("0.12", "0.33", 1683, "mean_n", "up_or_down", 5.0, false, false))
+    }
 }
 
