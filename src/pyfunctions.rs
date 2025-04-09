@@ -6,6 +6,7 @@ use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use crate::grim_map::grim_map;
 use crate::closure::closure;
+use crate::debit_map_df::debit_map_pl;
 
 /// Scrutipy: A library for scientific error checking and fraud detection.
 ///
@@ -21,5 +22,6 @@ fn scrutipy(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(grim_map_pl, module)?)?;
     module.add_function(wrap_pyfunction!(grim_map, module)?)?;
     module.add_function(wrap_pyfunction!(closure, module)?)?;
+    module.add_function(wrap_pyfunction!(debit_map_pl, module)?)?;
     Ok(())
 }

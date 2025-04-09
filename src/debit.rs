@@ -351,7 +351,8 @@ pub mod tests {
     fn debit_test_5() {
         assert!(debit_scalar("0.11", "0.31", 40,  "mean_n", "anti_trunc", 5.0, false, false))
     } 
-
+    
+    // the below tests come from Scrutiny
     #[test]
     fn debit_test_6() {
         assert!(debit_scalar("0.53", "0.50", 1683, "mean_n", "up_or_down", 5.0, false, false))
