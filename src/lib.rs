@@ -11,6 +11,8 @@ pub mod utils;
 pub mod test_utils;
 pub mod grim_map_df;
 pub mod debit;
+pub mod debit_map;
+pub mod debit_map_df;
 pub mod closure;
 use utils::*;
 
