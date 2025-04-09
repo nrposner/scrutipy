@@ -2,6 +2,7 @@ use crate::grim_map_df::ColumnInput;
 use core::f64;
 use pyo3::types::PyAnyMethods;
 use pyo3::{pyfunction, PyResult, Python, PyAny};
+use pyo3::types::PyString;
 use pyo3_polars::PyDataFrame;
 use pyo3::prelude::*;
 use pyo3::exceptions::PyImportError;
@@ -42,13 +43,13 @@ pub fn debit_map<'py>(
         )
     })?;
 
-    //let warnings = py.import("warnings").unwrap();
-    //if (x_col == ColumnInput::Default(0)) & (n_col == ColumnInput::Default(1)) & !silence_default_warning {
-    //    warnings.call_method1(
-    //        "warn",
-    //        (PyString::new(py, "The columns `x_col` and `n_col` haven't been changed from their defaults. \n Please ensure that the first and second columns contain the xs and ns respectively. \n To silence this warning, set `silence_default_warning = True`."),),
-    //    ).unwrap();
-    //};
+    let warnings = py.import("warnings").unwrap();
+    if (x_col == ColumnInput::Default(0)) & (sd_col == ColumnInput::Default(1)) & (n_col == ColumnInput::Default(2)) & !silence_default_warning {
+        warnings.call_method1(
+            "warn",
+            (PyString::new(py, "The columns `x_col` and `n_col` haven't been changed from their defaults. \n Please ensure that the first and second columns contain the xs and ns respectively. \n To silence this warning, set `silence_default_warning = True`."),),
+        ).unwrap();
+    };
 
     let pl_df_obj = polars
         .getattr("DataFrame")?
