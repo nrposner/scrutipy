@@ -230,7 +230,7 @@ pub fn debit_map_pl(
         }
     }
 
-    let res = debit(xs, sds, ns, formula.as_str(), rounding.as_str(), threshold, symmetric, show_rec);
+    let res = debit(xs, sds, ns, formula.as_str(), rounding.as_str(), threshold, symmetric, show_rec)?;
 
     // if the length of err_inds is 0, ie if no errors occurred, our error return is Option<None>.
     // Otherwise, our error return is Option<ns_err_inds>

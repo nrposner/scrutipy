@@ -2,7 +2,27 @@ use core::f64;
 use thiserror::Error;
 use crate::utils::{dustify, reround};
 use crate::utils::{decimal_places_scalar, reconstruct_sd_scalar};
-use pyo3::pyfunction;
+use pyo3::{pyfunction, PyResult, exceptions::PyValueError, PyErr};
+use thiserror;
+
+#[derive(Debug, Error)]
+enum DebitError {
+    #[error("The lengths of xs, sds, and ns are not equal: xs: {0}, sds: {1}, ns: {2}")]
+    LengthError(usize, usize, usize)
+}
+
+impl From<DebitError> for PyErr {
+    fn from(err: DebitError) -> PyErr {
+        match err {
+            DebitError::LengthError(xs_len, sds_len, ns_len) => {
+                PyValueError::new_err(format!(
+                    "The lengths of xs, sds, and ns are not equal: xs: {}, sds: {}, ns: {}",
+                    xs_len, sds_len, ns_len
+                ))
+            }
+        }
+    }
+}
 
 #[pyfunction(signature = (
     xs, sds, ns, formula = "mean_n", rounding = "up_or_down", threshold = 5.0, symmetric = false, show_rec = false
@@ -17,11 +37,12 @@ pub fn debit(
     threshold: f64,
     symmetric: bool,
     show_rec: bool
-) -> Vec<bool> {
+) -> PyResult<Vec<bool>> {
 
-    // error if these vectors are not the right length
-
-    xs.iter().zip(sds.iter()).zip(ns.iter()).map(|((x, sd), n)| debit_scalar(x.as_str(), sd.as_str(), *n, formula, rounding, threshold, symmetric, show_rec)).collect()
+    if xs.len() != sds.len() || sds.len() != ns.len() {
+        return Err(DebitError::LengthError(xs.len(), sds.len(), ns.len()).into());
+    }
+    Ok(xs.iter().zip(sds.iter()).zip(ns.iter()).map(|((x, sd), n)| debit_scalar(x.as_str(), sd.as_str(), *n, formula, rounding, threshold, symmetric, show_rec)).collect())
 }
 
 // adjust to also support other formulas using group0 and group1
