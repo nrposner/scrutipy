@@ -1,4 +1,4 @@
-# scrutiPy v0.1.6: Scientific error detection in Python
+# scrutiPy v0.1.7: Scientific error detection in Python
 
 A library for scientific error checking and fraud detection, based on the R Scrutiny library by Lukas Jung. Frontend API in Python 3, backend in Rust with PyO3 bindings. 
 
