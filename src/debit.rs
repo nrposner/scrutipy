@@ -66,7 +66,14 @@ impl From<DebitError> for PyErr {
 /// assert!(result.is_ok());
 /// assert!(result == vec![false, true]) 
 #[pyfunction(signature = (
-    xs, sds, ns, formula = "mean_n", rounding = "up_or_down", threshold = 5.0, symmetric = false, show_rec = false
+    xs,
+    sds,
+    ns,
+    formula = "mean_n",
+    rounding = "up_or_down",
+    threshold = 5.0,
+    symmetric = false,
+    show_rec = false
 ))]
 #[allow(clippy::too_many_arguments)]
 pub fn debit(
@@ -85,14 +92,32 @@ pub fn debit(
     };
 
     if xs.len() != sds.len() || sds.len() != ns.len() {
-        return Err(DebitError::LengthError(xs.len(), sds.len(), ns.len()).into());
+        return Err(DebitError::LengthError(
+            xs.len(), sds.len(), ns.len()).into());
     }
-    Ok(xs.iter().zip(sds.iter()).zip(ns.iter()).map(|((x, sd), n)| debit_scalar(x.as_str(), sd.as_str(), *n, formula, rounding, threshold, symmetric, show_rec)).collect())
+    Ok(xs.iter().zip(sds.iter()).zip(ns.iter()).map(|((x, sd), n)| 
+        debit_scalar(
+            x.as_str(), 
+            sd.as_str(), 
+            *n, 
+            formula, 
+            rounding, 
+            threshold,
+            symmetric, 
+            show_rec
+        )).collect())
 }
 
 // adjust to also support other formulas using group0 and group1
 #[pyfunction(signature = (
-    x, sd, n, formula = "mean_n", rounding = "up_or_down", threshold = 5.0, symmetric = false, show_rec = false
+    x, 
+    sd, 
+    n, 
+    formula = "mean_n", 
+    rounding = "up_or_down", 
+    threshold = 5.0, 
+    symmetric = false, 
+    show_rec = false
 ))]
 #[allow(clippy::too_many_arguments)]
 pub fn debit_scalar(
@@ -129,8 +154,15 @@ enum DebitTables {
 }
 
 impl DebitTables {
-    fn new_debit_table(sd: String, x: String, n: u32, consistency: bool) -> Self {
-        DebitTables::DebitTable(DebitTable::new(sd, x, n, consistency))
+    fn new_debit_table(
+        sd: String, 
+        x: String, 
+        n: u32, 
+        consistency: bool
+    ) -> Self {
+        DebitTables::DebitTable(
+            DebitTable::new(sd, x, n, consistency)
+        )
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -150,8 +182,19 @@ impl DebitTables {
         x_incl_upper: bool,
     ) -> Self {
         DebitTables::DebitTableVerbose(DebitTableVerbose::new(
-            sd, x, n, consistency, rounding, sd_lower, sd_incl_lower, sd_incl_upper, sd_upper,
-            x_lower, x_incl_lower, x_upper, x_incl_upper,
+            sd, 
+            x, 
+            n, 
+            consistency, 
+            rounding, 
+            sd_lower, 
+            sd_incl_lower, 
+            sd_incl_upper, 
+            sd_upper,
+            x_lower, 
+            x_incl_lower, 
+            x_upper, 
+            x_incl_upper,
         ))
     }
 }
@@ -165,7 +208,12 @@ struct DebitTable {
 }
 
 impl DebitTable {
-    pub fn new(sd: String, x: String, n: u32, consistency: bool) -> Self {
+    pub fn new(
+        sd: String, 
+        x: String, 
+        n: u32, 
+        consistency: bool
+    ) -> Self {
         DebitTable { sd, x, n, consistency }
     }
 }
@@ -249,8 +297,20 @@ fn debit_table(
     let sd_lower = sd_unrounded.lower;
     let sd_upper = sd_unrounded.upper;
 
-    let sd_rec_lower = reconstruct_sd_scalar(formula, x_lower.as_str(), n, 0, 0);
-    let sd_rec_upper = reconstruct_sd_scalar(formula, x_upper.as_str(), n, 0, 0);
+    let sd_rec_lower = reconstruct_sd_scalar(
+        formula, 
+        x_lower.as_str(), 
+        n, 
+        0, 
+        0
+    );
+    let sd_rec_upper = reconstruct_sd_scalar(
+        formula, 
+        x_upper.as_str(), 
+        n, 
+        0, 
+        0
+    );
     
     let x_incl_lower = x_unrounded.incl_lower;
     let x_incl_upper = x_unrounded.incl_upper;
@@ -259,33 +319,55 @@ fn debit_table(
     let sd_incl_upper = sd_unrounded.incl_upper;
     // right now, this will only support mean reconstruction, not other formulas
 
-    let mut sd_rec_lower = reround(vec![sd_rec_lower.unwrap()], digits_sd.unwrap(), rounding, threshold, symmetric);
-    let mut sd_rec_upper = reround(vec![sd_rec_upper.unwrap()], digits_sd.unwrap(), rounding, threshold, symmetric);
+    let mut sd_rec_lower = reround(
+        vec![sd_rec_lower.unwrap()], 
+        digits_sd.unwrap(), 
+        rounding, 
+        threshold, 
+        symmetric
+    );
+
+    let mut sd_rec_upper = reround(
+        vec![sd_rec_upper.unwrap()], 
+        digits_sd.unwrap(), 
+        rounding, 
+        threshold, 
+        symmetric
+    );
     
     sd_rec_lower.append(&mut sd_rec_upper);
 
     let sd_lower_test = dustify(sd_lower);
 
-    let sd_rec_both_test: Vec<f64> = sd_rec_lower.iter().flat_map(|x| dustify(*x)).collect();
+    let sd_rec_both_test: Vec<f64> = sd_rec_lower.iter().flat_map(
+        |x| 
+        dustify(*x)
+    ).collect();
+
     // we just concatenate the latter into the former
     let sd_upper_test = dustify(sd_upper);
 
     // Determine consistency based on inclusion flags and test results
     let consistency = if sd_incl_lower && sd_incl_upper {
+
         sd_lower_test.iter().any(|&x| sd_rec_both_test.iter().any(|&y| x <= y)) &&
         sd_rec_both_test.iter().any(|&x| sd_upper_test.iter().any(|&y| x <= y))
+
     } else if sd_incl_lower && !sd_incl_upper {
 
-        let l1 = sd_lower_test.iter().any(|&x| sd_rec_both_test.iter().any(|&y| x <= y)); 
-        let l2 = sd_rec_both_test.iter().any(|&x| sd_upper_test.iter().any(|&y| x < y));
+        sd_lower_test.iter().any(|&x| sd_rec_both_test.iter().any(|&y| x <= y)) &&
+        sd_rec_both_test.iter().any(|&x| sd_upper_test.iter().any(|&y| x < y))
 
-        l1 && l2 
     } else if !sd_incl_lower && sd_incl_upper {
+
         sd_lower_test.iter().any(|&x| sd_rec_both_test.iter().any(|&y| x < y)) &&
         sd_rec_both_test.iter().any(|&x| sd_upper_test.iter().any(|&y| x <= y))
+
     } else {
+
         sd_lower_test.iter().any(|&x| sd_rec_both_test.iter().any(|&y| x < y)) &&
         sd_rec_both_test.iter().any(|&x| sd_upper_test.iter().any(|&y| x < y))
+
     };
 
     if show_rec {
@@ -357,7 +439,11 @@ pub fn rounding_bounds(
     }
 }
 
-fn unround(x: &str, rounding: &str, threshold: f64) -> Result<UnroundReturn, RoundingBoundError> {
+fn unround(
+    x: &str, 
+    rounding: &str,
+    threshold: f64
+) -> Result<UnroundReturn, RoundingBoundError> {
     let digits = decimal_places_scalar(Some(x), ".");
     let p10: f64 = 10.0f64.powi(digits.unwrap() + 1);
     let d = 5.0 / p10;
@@ -365,7 +451,12 @@ fn unround(x: &str, rounding: &str, threshold: f64) -> Result<UnroundReturn, Rou
 
     let x_num :f64 = x.parse().unwrap();
 
-    let bounds = rounding_bounds(rounding, x_num, d_var, d).unwrap();
+    let bounds = rounding_bounds(
+        rounding, 
+        x_num, 
+        d_var, 
+        d
+    ).unwrap();
 
     let lower = bounds.0;
     let upper = bounds.1;
@@ -373,7 +464,12 @@ fn unround(x: &str, rounding: &str, threshold: f64) -> Result<UnroundReturn, Rou
     let sign_lower = bounds.2;
     let sign_upper = bounds.3;
 
-    Ok(UnroundReturn::new(lower, sign_lower == "<=", sign_upper == "<=", upper))
+    Ok(UnroundReturn::new(
+        lower, 
+        sign_lower == "<=", 
+        sign_upper == "<=", 
+        upper
+    ))
 }
 
 struct UnroundReturn {
@@ -384,7 +480,12 @@ struct UnroundReturn {
 }
 
 impl UnroundReturn {
-    pub fn new(lower: f64, incl_lower: bool, incl_upper: bool, upper: f64) -> Self {
+    pub fn new(
+        lower: f64, 
+        incl_lower: bool, 
+        incl_upper: bool, 
+        upper: f64
+    ) -> Self {
         UnroundReturn {lower, incl_lower, incl_upper, upper}
     }
 }
