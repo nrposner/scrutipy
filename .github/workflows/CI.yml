@@ -42,6 +42,6 @@ jobs:
         shell: bash
 
       - name: Publish to PyPI
-        run: maturin upload --username __token__ --password ${{ secrets.PYPI_API_TOKEN }} dist/*
+        run: maturin upload --username __token__ --password ${{ secrets.PYPI_API_TOKEN }} --no-skip-existing dist/*
         shell: bash
 
