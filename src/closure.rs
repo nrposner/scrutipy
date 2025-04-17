@@ -17,7 +17,7 @@ use std::collections::VecDeque;
 use rayon::prelude::*;
 use pyo3::pyfunction;
 
-#[pyfunction(signature = (mean, sd, n, scale_min, scale_max, rounding_error_mean, rounding_error_sd))]
+#[pyfunction(signature = (mean, sd, n, scale_min, scale_max, rounding_error_mean = 0.05, rounding_error_sd = 0.05))]
 #[cfg(not(tarpaulin_include))]
 /// A Python implementation of the CLOSURE algorithm for reconstructing datasets from summary
 /// statistics. 
