@@ -400,4 +400,19 @@ pub mod test {
         )[0];
         assert!(!val)
     }
+
+    #[test]
+    fn grimmer_rust_test_2() {
+        let val = grimmer_rust(
+            vec!["52.13"],
+            vec!["2.26"],
+            vec![30],
+            vec![1],
+            vec![false, false, false],
+            "up_or_down",
+            5.0,
+            EPS.powf(0.5),
+        )[0];
+        assert!(val)
+    }
 }
