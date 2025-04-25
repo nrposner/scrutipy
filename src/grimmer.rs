@@ -180,7 +180,7 @@ pub fn grimmer_scalar(
 }
 
 #[cfg(not(tarpaulin_include))]
-#[pyfunction(signature = (xs, sds, ns, rounding, items=vec![1], percent = false, show_reason = false, threshold = 5.0, symmetric = false, tolerance = f64::EPSILON.powf(0.5)))]
+#[pyfunction(signature = (xs, sds, ns, rounding = "up_or_down".to_string(), items=vec![1], percent = false, show_reason = false, threshold = 5.0, symmetric = false, tolerance = f64::EPSILON.powf(0.5)))]
 #[allow(clippy::too_many_arguments)]
 /// Determines the possibility of standard deviations from given means and sample sizes using the A-GRIMMER algorithm.
 ///
@@ -414,5 +414,20 @@ pub mod test {
             EPS.powf(0.5),
         )[0];
         assert!(val)
+    }
+
+    #[test]
+    fn grimmer_rust_test_3() {
+        let vals = grimmer_rust(
+            vec!["1.03", "52.13", "9.42375"],
+            vec!["0.41", "2.26", "3.86"],
+            vec![40, 30, 59],
+            vec![1, 1, 1],
+            vec![false, false, false],
+            "up_or_down",
+            5.0,
+            EPS.powf(0.5),
+        );
+        assert_eq!(vals, vec![false, true, false])
     }
 }

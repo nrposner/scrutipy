@@ -1,4 +1,4 @@
-# scrutiPy v0.1.7: Scientific error detection in Python
+# scrutiPy v0.1.9: Scientific error detection in Python
 
 A library for scientific error checking and fraud detection, based on the R Scrutiny library by Lukas Jung. Frontend API in Python 3, backend in Rust with PyO3 bindings. 
 
@@ -30,6 +30,18 @@ print(bools)
 print(errors)
 # None
 ```
+
+grimmer() Implements the GRIMMER test on 1d iterables.
+
+```
+from scrutipy import grimmer
+results = grimmer(["1.03", "52.13", "9.42375"], ["0.41", "2.26", "3.86"], [40, 30, 59], items = [1, 1, 1])
+
+print(results)
+# list(False, True, False) 
+
+```
+
 
 debit() implements the DEBIT test on 1d iterables (lists and arrays). 
 
