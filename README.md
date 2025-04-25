@@ -42,7 +42,6 @@ print(results)
 
 ```
 
-
 debit() implements the DEBIT test on 1d iterables (lists and arrays). 
 
 ```
@@ -78,6 +77,8 @@ Note that even with CLOSURE's performance gains, the necessary time and compute 
 # reconstruct possible datasets with a mean of 3.5, sd of 0.57, n = 100, 
 # and inclusive range from 0 to 7. 
 # We set the rounding error for the mean to 0.05 and for sd to 0.005
+
+from scrutipy import closure
 results = closure(3.5, 1.2, 50, 0, 7, 0.05, 0.005) 
 
 len(results)
