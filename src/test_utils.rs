@@ -60,6 +60,12 @@ mod tests {
         assert_eq!(decimal_places_scalar(None, "."), None);
     }
 
+    #[test]
+    fn decimal_places_test_8() {
+        assert_eq!(decimal_places_scalar(Some("52.13"), "."), Some(2));
+    }
+
+
     // testing reconstruct_sd_scalar
     #[test]
     fn reconstruct_sd_scalar_test_1() {

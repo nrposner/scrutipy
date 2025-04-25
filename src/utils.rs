@@ -29,7 +29,7 @@ pub fn dustify(x: f64) -> Vec<f64> {
 pub fn decimal_places_scalar(x: Option<&str>, sep: &str) -> Option<i32> {
     let s = x?;
 
-    let pattern = format!("{}(\\d+)", sep);
+    let pattern = format!(r"{}(\d+)", regex::escape(sep));
     let re = Regex::new(&pattern).ok()?;
     let caps = re.captures(s)?;
 
