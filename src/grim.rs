@@ -137,13 +137,9 @@ pub fn grim_scalar_rust(
     let show_rec: bool = bool_params[1];
     let symmetric: bool = bool_params[2];
 
-    // let mut x_num: f64 = x.parse()?;
-
     let Ok(mut x_num): Result<f64, ParseFloatError> = x.parse() else {
         return Err(GrimScalarError::ParseFloatError)
     };
-
-    //let mut digits: i32 = decimal_places_scalar(Some(x), ".").unwrap();
 
     let Some(mut digits): Option<i32> = decimal_places_scalar(Some(x), ".") else {
         return Err(GrimScalarError::DecimalNullError("".to_string()));
