@@ -5,7 +5,7 @@ use crate::utils::{decimal_places_scalar, reconstruct_sd_scalar};
 use pyo3::{pyfunction, PyResult, exceptions::PyValueError, PyErr};
 use thiserror;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq)]
 enum DebitError {
     #[error("The lengths of xs, sds, and ns are not equal: xs: {0}, sds: {1}, ns: {2}")]
     LengthError(usize, usize, usize)
@@ -87,13 +87,31 @@ pub fn debit(
     show_rec: bool
 ) -> PyResult<Vec<bool>> {
 
+    match debit_rust(xs, sds, ns, formula, rounding, threshold, symmetric, show_rec) {
+        Ok(v) => Ok(v),
+        Err(e) => Err(e.into())
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn debit_rust(
+    xs: Vec<String>,
+    sds: Vec<String>,
+    ns: Vec<u32>,
+    formula: &str,
+    rounding: &str,
+    threshold: f64,
+    symmetric: bool,
+    show_rec: bool
+) -> Result<Vec<bool>, DebitError>  {
+
     if (formula != "mean_n") & (formula != "mean") {
         todo!("Formulas other than mean_n are not yet implemented")
     };
 
     if xs.len() != sds.len() || sds.len() != ns.len() {
         return Err(DebitError::LengthError(
-            xs.len(), sds.len(), ns.len()).into());
+            xs.len(), sds.len(), ns.len()));
     }
     Ok(xs.iter().zip(sds.iter()).zip(ns.iter()).map(|((x, sd), n)| 
         debit_scalar(
@@ -593,37 +611,24 @@ pub mod tests {
         debit(xs_string, sds_string, ns, formula, rounding, threshold, symmetric, show_rec).unwrap_err();
     }
 
-    // we want debit to be a thin python wrapper around the debit functionality so we can do a
-    // proper test on the Rust side
-    //
-    // use pyo3::{exceptions::PyValueError, Python};
-    // #[test]
-    // fn debit_test_3() {
-    //     let xs = ["0.36, 0.11", "0.118974", "0.53","0.44", "0.77", "0.19", "0.34", "0.93", "0.12"]; // not
-    //     // the right length!
-    //     let sds = ["0.11", "0.31", "0.6784", "0.50", "0.50", "0.42", "0.35", "0.47", "0.25", "0.33"];
-    //     let ns = vec![20, 40, 100, 1683, 1683, 1683, 1683, 1683, 1683, 1683];
-    //     let formula = "mean_n";
-    //     let rounding = "up_or_down";
-    //     let threshold = 5.0;
-    //     let symmetric = false;
-    //     let show_rec = false;
-    //
-    //     let xs_string: Vec<String> = xs.iter().map(|s| s.to_string()).collect();
-    //     let sds_string: Vec<String> = sds.iter().map(|s| s.to_string()).collect();
-    //
-    //     let result = debit(xs_string, sds_string, ns, formula, rounding, threshold, symmetric, show_rec);
-    //
-    //     match result {
-    //         Err(e) => {
-    //             Python::with_gil(|py| {
-    //                 assert!(e.is_instance::<PyValueError>(py));
-    //             });
-    //             let error_message = e.to_string();
-    //             assert!(error_message.contains("The lenghts of xs, sds, and ns are not equal"));
-    //         },
-    //         Ok(_) => panic!("Test should return an error, but got a successful result"),
-    //     }
-    // }
+    #[test]
+    fn debit_rust_test_1() {
+        let xs = ["0.36, 0.11", "0.118974", "0.53","0.44", "0.77", "0.19", "0.34", "0.93", "0.12"]; // not
+        // the right length!
+        let sds = ["0.11", "0.31", "0.6784", "0.50", "0.50", "0.42", "0.35", "0.47", "0.25", "0.33"];
+        let ns = vec![20, 40, 100, 1683, 1683, 1683, 1683, 1683, 1683, 1683];
+        let formula = "mean_n";
+        let rounding = "up_or_down";
+        let threshold = 5.0;
+        let symmetric = false;
+        let show_rec = false;
+
+        let xs_string: Vec<String> = xs.iter().map(|s| s.to_string()).collect();
+        let sds_string: Vec<String> = sds.iter().map(|s| s.to_string()).collect();
+
+        let err = debit_rust(xs_string, sds_string, ns, formula, rounding, threshold, symmetric, show_rec).unwrap_err();
+
+        assert_eq!(err, DebitError::LengthError(9, 10, 10));
+    }
 }
 
