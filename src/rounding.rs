@@ -28,9 +28,11 @@ pub fn rust_round(x: f64, y: i32) -> f64 {
 pub fn round_trunc(x: f64, digits: i32) -> f64 {
     let p10 = 10.0f64.powi(digits);
 
-    //For symmetry between positive and negative numbers, use the absolute value:
-    let core = (x.abs() * p10).trunc() / p10; // the rust f64::trunc() function may have
-                                              // different properties than the R trunc() function, check to make sure
+    //For symmetry between positive and negative numbers, use the absolute value
+    // the rust f64::trunc() function may have
+    // different properties than the R trunc() function, check to make sure
+    let core = (x.abs() * p10).trunc() / p10; 
+                                              
     match x < 0.0 {
         true => -core,
         false => core,
@@ -70,9 +72,6 @@ pub fn round_floor(x: f64, digits: i32) -> f64 {
     let p10 = 10.0f64.powi(digits);
     (x * p10).floor() / p10
 }
-// not sure if x and rounding are meant to be scalars or vectors, because it seems elsewhere like
-// we can pass multiple arguments to rounding, and that x can also be a vector????
-// But the example values for the above function look exclusively scalars
 
 pub fn round_up_from(x: Vec<f64>, digits: i32, threshold: f64, symmetric: bool) -> Vec<f64> {
     let p10 = 10.0f64.powi(digits);
@@ -86,7 +85,7 @@ pub fn round_up_from(x: Vec<f64>, digits: i32, threshold: f64, symmetric: bool) 
 pub fn round_up_from_scalar(x: f64, p10: f64, threshold: f64, symmetric: bool) -> f64 {
     if symmetric {
         match x < 0.0 {
-            true => -(x.abs() * p10 + (1.0 - (threshold / 10.0))).floor() / p10, // - (floor(abs(x) * p10 + (1 - (threshold / 10))) / p10)
+            true => -(x.abs() * p10 + (1.0 - (threshold / 10.0))).floor() / p10, 
             false => (x * p10 + (1.0 - (threshold / 10.0))).floor() / p10,
         }
     } else {
@@ -98,18 +97,12 @@ pub fn round_down_from(x: Vec<f64>, digits: i32, threshold: f64, symmetric: bool
     let p10 = 10.0f64.powi(digits);
     let threshold = threshold - f64::EPSILON.powf(0.5);
 
-    // let's make a round_down_from_scalar function that we can .map onto the vector
-    //
-    //
     x.iter()
         .map(|i| round_down_from_scalar(*i, p10, threshold, symmetric))
         .collect()
 }
 
 pub fn round_down_from_scalar(x: f64, p10: f64, threshold: f64, symmetric: bool) -> f64 {
-    //let p10 = 10.0f64.powi(digits);
-    //let threshold = threshold - f64::MIN_POSITIVE.powf(0.5);
-
     if symmetric {
         match x < 0.0 {
             true => -(x.abs() * p10 - (1.0 - (threshold / 10.0))).ceil() / p10,
@@ -117,8 +110,5 @@ pub fn round_down_from_scalar(x: f64, p10: f64, threshold: f64, symmetric: bool)
         }
     } else {
         (x * p10 - (1.0 - (threshold / 10.0))).ceil() / p10
-
-        //(x * p10 - (1-(threshold / 10))).ceil() / p10
-        // ceiling(x * p10 - (1 - (threshold / 10))) / p10
     }
 }
