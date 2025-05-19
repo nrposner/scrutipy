@@ -101,6 +101,7 @@ pub fn grim_rust(
             )
         })
         .collect();
+
     vals.iter()
         .map(|grim_result| match grim_result {
             Ok(grim_return) => match grim_return {
