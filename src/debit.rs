@@ -573,5 +573,57 @@ pub mod tests {
         assert_eq!(vals, vec![false, true, false, true, true, true, false, true, true, true]);
 
     }
+
+    #[test]
+    fn debit_test_2() {
+        let xs = ["0.36, 0.11", "0.118974", "0.53","0.44", "0.77", "0.19", "0.34", "0.93", "0.12"]; // not
+        // the right length!
+        let sds = ["0.11", "0.31", "0.6784", "0.50", "0.50", "0.42", "0.35", "0.47", "0.25", "0.33"];
+        let ns = vec![20, 40, 100, 1683, 1683, 1683, 1683, 1683, 1683, 1683];
+        let formula = "mean_n";
+        let rounding = "up_or_down";
+        let threshold = 5.0;
+        let symmetric = false;
+        let show_rec = false;
+
+        let xs_string: Vec<String> = xs.iter().map(|s| s.to_string()).collect();
+        let sds_string: Vec<String> = sds.iter().map(|s| s.to_string()).collect();
+
+        // we extract the error
+        debit(xs_string, sds_string, ns, formula, rounding, threshold, symmetric, show_rec).unwrap_err();
+    }
+
+    // we want debit to be a thin python wrapper around the debit functionality so we can do a
+    // proper test on the Rust side
+    //
+    // use pyo3::{exceptions::PyValueError, Python};
+    // #[test]
+    // fn debit_test_3() {
+    //     let xs = ["0.36, 0.11", "0.118974", "0.53","0.44", "0.77", "0.19", "0.34", "0.93", "0.12"]; // not
+    //     // the right length!
+    //     let sds = ["0.11", "0.31", "0.6784", "0.50", "0.50", "0.42", "0.35", "0.47", "0.25", "0.33"];
+    //     let ns = vec![20, 40, 100, 1683, 1683, 1683, 1683, 1683, 1683, 1683];
+    //     let formula = "mean_n";
+    //     let rounding = "up_or_down";
+    //     let threshold = 5.0;
+    //     let symmetric = false;
+    //     let show_rec = false;
+    //
+    //     let xs_string: Vec<String> = xs.iter().map(|s| s.to_string()).collect();
+    //     let sds_string: Vec<String> = sds.iter().map(|s| s.to_string()).collect();
+    //
+    //     let result = debit(xs_string, sds_string, ns, formula, rounding, threshold, symmetric, show_rec);
+    //
+    //     match result {
+    //         Err(e) => {
+    //             Python::with_gil(|py| {
+    //                 assert!(e.is_instance::<PyValueError>(py));
+    //             });
+    //             let error_message = e.to_string();
+    //             assert!(error_message.contains("The lenghts of xs, sds, and ns are not equal"));
+    //         },
+    //         Ok(_) => panic!("Test should return an error, but got a successful result"),
+    //     }
+    // }
 }
 
