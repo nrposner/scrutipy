@@ -49,7 +49,7 @@ pub fn grim_scalar(
     match val {
         Ok(r) => match r {
             GrimReturn::Bool(b) => b,
-            GrimReturn::List(a, _, _, _, _, _) => a,
+            GrimReturn::List(a, _, _, _, _, _, _, _) => a,
         },
         Err(_) => panic!(),
     }
@@ -57,21 +57,7 @@ pub fn grim_scalar(
 
 pub enum GrimReturn {
     Bool(bool),
-    List(bool, f64, Vec<f64>, Vec<f64>, f64, f64),
-    //
-    //
-    //
-    //List(
-    // bool,
-    //f64,
-    //Vec<f64>,
-    //Vec<f64>,
-    //Vec<f64>,
-    //Vec<f64>,
-    //Vec<f64>,
-    //Vec<f64>,
-    //),
-    //
+    List(bool, f64, Vec<f64>, Vec<f64>, f64, f64, f64, f64),
 }
 
 // vector wrapper for grim_scalar_rust
@@ -106,7 +92,7 @@ pub fn grim_rust(
         .map(|grim_result| match grim_result {
             Ok(grim_return) => match grim_return {
                 GrimReturn::Bool(b) => *b,
-                GrimReturn::List(a, _, _, _, _, _) => *a,
+                GrimReturn::List(a, _, _, _, _, _, _, _) => *a,
             },
             Err(_) => panic!(),
         })
@@ -185,7 +171,6 @@ pub fn grim_scalar_rust(
     if !show_rec {
         Ok(GrimReturn::Bool(consistency))
     } else {
-
         let length_2ers = ["up_or_down", "up_from_or_down_from", "ceiling_or_floor"];
 
         if length_2ers.contains(&rounding) {
@@ -196,8 +181,8 @@ pub fn grim_scalar_rust(
                 rec_x_lower,
                 granules_rounded[0],
                 granules_rounded[1],
-                //granules_rounded[4].clone(),
-                //granules_rounded[5].clone(),
+                granules_rounded[4],
+                granules_rounded[5],
             ))
         } else {
             Ok(GrimReturn::Bool(consistency))
@@ -219,7 +204,7 @@ pub fn grim_tester(grim_result: Result<GrimReturn, GrimScalarError>, expected: b
                 true => assert!(b),
                 false => assert!(!b),
             },
-            GrimReturn::List(a, _, _, _, _, _) => assert!(!a),
+            GrimReturn::List(a, _, _, _, _, _, _, _) => assert!(!a),
         },
         Err(_) => panic!(),
     };

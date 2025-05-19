@@ -70,7 +70,7 @@ pub fn grimmer_scalar(
     let pass_grim = match grim_return {
         Ok(grim_return) => match grim_return {
             GrimReturn::Bool(b) => b,
-            GrimReturn::List(a, _, _, _, _, _) => a,
+            GrimReturn::List(a, _, _, _, _, _, _, _) => a,
         },
         Err(_) => panic!(),
     };
