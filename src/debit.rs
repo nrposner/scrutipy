@@ -160,8 +160,7 @@ pub fn debit_scalar(
     );
 
     match table {
-        DebitTables::DebitTable(debit_table) => debit_table.consistency
-        ,
+        DebitTables::DebitTable(debit_table) => debit_table.consistency,
         DebitTables::DebitTableVerbose(debit_table_verbose) => debit_table_verbose.consistency,
     }
 }
@@ -573,6 +572,36 @@ pub mod tests {
         assert!(debit_scalar("0.12", "0.33", 1683, "mean_n", "up_or_down", 5.0, false, false))
     }
 
+    #[test]
+    fn debit_scalar_test_13() {
+        assert!(debit_scalar("0.12", "0.33", 1683, "mean_n", "up_or_down", 5.0, false, true))
+    }
+
+    #[test]
+    fn debit_scalar_test_14() {
+        assert!(!debit_scalar("0.19", "0.35", 1683, "mean_n", "up", 5.0, false, false))
+    }
+
+    #[test]
+    fn debit_scalar_test_15() {
+        assert!(debit_scalar("0.34", "0.47", 1683, "mean_n", "down", 5.0, false, false))
+    }
+
+    #[test]
+    fn debit_scalar_test_16() {
+        assert!(debit_scalar("0.93", "0.25", 1683, "mean_n", "even", 5.0, false, false))
+    }
+
+    #[test]
+    fn debit_scalar_test_17() {
+        assert!(debit_scalar("0.12", "0.33", 1683, "mean_n", "ceiling", 5.0, false, false))
+    }
+
+    #[test]
+    fn debit_scalar_test_18() {
+        assert!(debit_scalar("0.12", "0.33", 1683, "mean_n", "floor", 5.0, false, false))
+    }
+    
     #[test]
     fn debit_test_1() {
         let xs = ["0.36", "0.11", "0.118974", "0.53","0.44", "0.77", "0.19", "0.34", "0.93", "0.12"];
