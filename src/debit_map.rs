@@ -64,6 +64,7 @@ use crate::debit_map_df::debit_map_pl;
 /// result, errors = debit_map(df)
 /// print(result)  # Output: [True, False]
 /// print(errors)  # Output: None (as no errors occurred)
+#[cfg(not(tarpaulin_include))]
 #[allow(clippy::too_many_arguments)]
 #[pyfunction(signature = (
      pandas_df, 
