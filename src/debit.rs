@@ -495,63 +495,63 @@ pub mod tests {
     use super::*;
 
     #[test]
-    fn debit_test_1() {
+    fn debit_scalar_test_1() {
         assert!(!debit_scalar("0.36", "0.11", 20,  "mean_n", "up_or_down", 5.0, false, false))
     }
 
     #[test]
-    fn debit_test_2() {
+    fn debit_scalar_test_2() {
         assert!(debit_scalar("0.11", "0.31", 40,  "mean_n", "up_or_down", 5.0, false, false))
     } 
 
     #[test]
-    fn debit_test_3() {
+    fn debit_scalar_test_3() {
         assert!(!debit_scalar("0.118974", "0.6784", 100, "mean_n", "up_or_down", 5.0, false, false))
     } 
 
     #[test]
-    fn debit_test_4() {
+    fn debit_scalar_test_4() {
         assert!(debit_scalar("0.11", "0.31", 40,  "mean_n", "trunc", 5.0, false, false))
     } 
 
     #[test]
-    fn debit_test_5() {
+    fn debit_scalar_test_5() {
         assert!(debit_scalar("0.11", "0.31", 40,  "mean_n", "anti_trunc", 5.0, false, false))
     } 
     
     // the below tests come from Scrutiny
     #[test]
-    fn debit_test_6() {
+    fn debit_scalar_test_6() {
         assert!(debit_scalar("0.53", "0.50", 1683, "mean_n", "up_or_down", 5.0, false, false))
     }
 
     #[test]
-    fn debit_test_7() {
+    fn debit_scalar_test_7() {
         assert!(debit_scalar("0.44", "0.50", 1683, "mean_n", "up_or_down", 5.0, false, false))
     }
 
     #[test]
-    fn debit_test_8() {
+    fn debit_scalar_test_8() {
         assert!(debit_scalar("0.77", "0.42", 1683, "mean_n", "up_or_down", 5.0, false, false))
     }
 
     #[test]
-    fn debit_test_9() {
+    fn debit_scalar_test_9() {
         assert!(!debit_scalar("0.19", "0.35", 1683, "mean_n", "up_or_down", 5.0, false, false))
     }
 
     #[test]
-    fn debit_test_10() {
+    fn debit_scalar_test_10() {
         assert!(debit_scalar("0.34", "0.47", 1683, "mean_n", "up_or_down", 5.0, false, false))
     }
 
     #[test]
-    fn debit_test_11() {
+    fn debit_scalar_test_11() {
         assert!(debit_scalar("0.93", "0.25", 1683, "mean_n", "up_or_down", 5.0, false, false))
     }
 
     #[test]
-    fn debit_test_12() {
+    fn debit_scalar_test_12() {
         assert!(debit_scalar("0.12", "0.33", 1683, "mean_n", "up_or_down", 5.0, false, false))
     }
 }
