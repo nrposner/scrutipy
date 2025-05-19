@@ -137,47 +137,54 @@ pub fn grim_scalar_rust(
     let show_rec: bool = bool_params[1];
     let symmetric: bool = bool_params[2];
 
+    // Define key values from arguments
     let Ok(mut x_num): Result<f64, ParseFloatError> = x.parse() else {
         return Err(GrimScalarError::ParseFloatError)
     };
-
     let Some(mut digits): Option<i32> = decimal_places_scalar(Some(x), ".") else {
         return Err(GrimScalarError::DecimalNullError("".to_string()));
     };
 
+    // the `percent` argument allows for easy conversion of percentages to decimal numbers
     if percent {
         x_num /= 100.0;
         digits += 2;
     };
 
+    // prepare further objects for reconstructing original values
     let n_items = n * items;
-
     let rec_sum = x_num * f64::from(n_items) ;
 
+    // now reconstruct the possible mean or percentage values ('granules'), controlling
+    // for small differences introduced by spurious precision
     let rec_x_upper = dustify(rec_sum.ceil() / f64::from(n_items) );
     let rec_x_lower = dustify(rec_sum.floor() / f64::from(n_items) );
 
+    // concatenate the mean vectors
     let conc: Vec<f64> = rec_x_upper
         .iter()
         .cloned()
         .chain(rec_x_lower.iter().cloned())
         .collect();
-    //note that this modifies in place, so we just use rec_x_upper as the input to grains_rounded
 
-    let grains_rounded = reround(conc, digits, rounding, threshold, symmetric);
+    // Round these "granules" using an internal helper function that also gets the number of decimal places 
+    // as well as the `rounding`, `threshold`, and  `symmetric` arguments passed down to:
+    let granules_rounded = reround(conc, digits, rounding, threshold, symmetric);
 
-    let bools: Vec<bool> = grains_rounded
+    // test if the reported mean or percentage `x_num` is within tolerance of for each reconstructed
+    // values, 'granule'
+    let bools: Vec<bool> = granules_rounded
         .clone()
         .into_iter()
         .map(|x| is_near(x, x_num, tolerance))
         .collect();
 
-    let grain_is_x: bool = bools.iter().any(|&b| b);
+    // report whether any of the above comparisons returned true
+    let consistency: bool = bools.iter().any(|&b| b);
 
     if !show_rec {
-        Ok(GrimReturn::Bool(grain_is_x))
+        Ok(GrimReturn::Bool(consistency))
     } else {
-        let consistency: bool = grain_is_x;
 
         let length_2ers = ["up_or_down", "up_from_or_down_from", "ceiling_or_floor"];
 
@@ -187,13 +194,13 @@ pub fn grim_scalar_rust(
                 rec_sum,
                 rec_x_upper,
                 rec_x_lower,
-                grains_rounded[0],
-                grains_rounded[1],
-                //grains_rounded[4].clone(),
-                //grains_rounded[5].clone(),
+                granules_rounded[0],
+                granules_rounded[1],
+                //granules_rounded[4].clone(),
+                //granules_rounded[5].clone(),
             ))
         } else {
-            Ok(GrimReturn::Bool(grain_is_x))
+            Ok(GrimReturn::Bool(consistency))
         }
     }
 }
