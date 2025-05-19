@@ -33,14 +33,13 @@ pub fn round_trunc(x: f64, digits: i32) -> f64 {
     // different properties than the R trunc() function, check to make sure
     let core = (x.abs() * p10).trunc() / p10; 
                                               
+    //If `x` is negative, its truncated version should be negative or zero.
+    //Therefore, in this case, the function returns the negative of `core`, the
+    //absolute value; otherwise it simply returns `core` itself:
     match x < 0.0 {
         true => -core,
         false => core,
     }
-
-    //If `x` is negative, its truncated version should be negative or zero.
-    //Therefore, in this case, the function returns the negative of `core`, the
-    //absolute value; otherwise it simply returns `core` itself:
 }
 
 pub fn anti_trunc(x: f64) -> f64 {
