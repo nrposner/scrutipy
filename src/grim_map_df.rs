@@ -79,7 +79,7 @@ pub fn grim_map_pl(
             .as_series()
             .ok_or_else(|| PyTypeError::new_err("Column could not be interpreted as a Series"))?,
     };
-    if xs.len() == 0 {
+    if xs.is_empty() {
         return Err(PyTypeError::new_err("The x_col column is empty."));
     }
 
@@ -101,7 +101,7 @@ pub fn grim_map_pl(
             .ok_or_else(|| PyTypeError::new_err("Column could not be interpreted as a Series"))?,
     };
 
-    if ns.len() == 0 {
+    if ns.is_empty() {
         return Err(PyTypeError::new_err("The n_col column is empty."));
     }
 
