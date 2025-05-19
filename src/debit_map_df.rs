@@ -13,6 +13,7 @@ use crate::grim_map_df::{ColumnInput, coerce_string_to_u32, coerce_to_u32, NsPar
 #[pyfunction(signature = (
     pydf, x_col = ColumnInput::Default(0), sd_col = ColumnInput::Default(1), n_col = ColumnInput::Default(2), show_rec = false, symmetric = false, formula = "mean_n".to_string(), rounding = "up_or_down".to_string(), threshold = 5.0, silence_default_warning = false, silence_numeric_warning = false
 ))]
+#[cfg(not(tarpaulin_include))]
 pub fn debit_map_pl(
     py: Python, 
     pydf: PyDataFrame, 
