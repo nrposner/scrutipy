@@ -554,5 +554,24 @@ pub mod tests {
     fn debit_scalar_test_12() {
         assert!(debit_scalar("0.12", "0.33", 1683, "mean_n", "up_or_down", 5.0, false, false))
     }
+
+    #[test]
+    fn debit_test_1() {
+        let xs = ["0.36", "0.11", "0.118974", "0.53","0.44", "0.77", "0.19", "0.34", "0.93", "0.12"];
+        let sds = ["0.11", "0.31", "0.6784", "0.50", "0.50", "0.42", "0.35", "0.47", "0.25", "0.33"];
+        let ns = vec![20, 40, 100, 1683, 1683, 1683, 1683, 1683, 1683, 1683];
+        let formula = "mean_n";
+        let rounding = "up_or_down";
+        let threshold = 5.0;
+        let symmetric = false;
+        let show_rec = false;
+
+        let xs_string: Vec<String> = xs.iter().map(|s| s.to_string()).collect();
+        let sds_string: Vec<String> = sds.iter().map(|s| s.to_string()).collect();
+
+        let vals: Vec<bool> = debit(xs_string, sds_string, ns, formula, rounding, threshold, symmetric, show_rec).unwrap();
+        assert_eq!(vals, vec![false, true, false, true, true, true, false, true, true, true]);
+
+    }
 }
 
