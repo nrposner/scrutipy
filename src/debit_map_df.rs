@@ -41,91 +41,31 @@ fn parse_col(df: &DataFrame, col: ColumnInput) -> Result<Series, DataFrameParseE
     Ok(xs.clone())
 }
 
-fn parse_x_col(df: &DataFrame, x_col: ColumnInput) -> Result<Series, PyErr> {
-    parse_col(df, x_col)
-    .map_err(|e| match e {
-        DataFrameParseError::ValueError(name, cols) => {
-            PyValueError::new_err(format!(
-                "The x_col column named '{}', not found in the provided dataframe. Available columns: {:?}",
-                name, cols,
-            ))
-        }
-        DataFrameParseError::TypeError(name) => {
-            PyTypeError::new_err(format!(
-                "The sd_col column '{}' could not be interpreted as a Series",
-                name,
-            ))
-        }
-        DataFrameParseError::IndexError(ind, total) => {
-            PyIndexError::new_err(format!(
-                "The x_col column_index '{}' is out of bounds for the provided dataframe, which has {} columns",
-                ind, total,
-            ))
-        }
-        DataFrameParseError::TypeIndexError(ind) => {
-            PyTypeError::new_err(format!(
-                "The x_col column at index {} could not be interpreted as a Series",
-                ind,
-            ))
-        }
-    })
-}
-
-fn parse_sd_col(df: &DataFrame, sd_col: ColumnInput) -> Result<Series, PyErr> {
-    parse_col(df, sd_col)
-    .map_err(|e| match e {
-        DataFrameParseError::ValueError(name, cols) => {
-            PyValueError::new_err(format!(
-                "The sd_col column named '{}', not found in the provided dataframe. Available columns: {:?}",
-                name, cols,
-            ))
-        }
-        DataFrameParseError::TypeError(name) => {
-            PyTypeError::new_err(format!(
-                "The sd_col column '{}' could not be interpreted as a Series",
-                name,
-            ))
-        }
-        DataFrameParseError::IndexError(ind, total) => {
-            PyIndexError::new_err(format!(
-                "The sd_col column_index '{}' is out of bounds for the provided dataframe, which has {} columns",
-                ind, total,
-            ))
-        }
-        DataFrameParseError::TypeIndexError(ind) => {
-            PyTypeError::new_err(format!(
-                "The sd_col column at index {} could not be interpreted as a Series",
-                ind,
-            ))
-        }
-    })
-}
-
-fn parse_n_col(df: &DataFrame, n_col: ColumnInput) -> Result<Series, PyErr> {
+fn parse_col_errors(df: &DataFrame, n_col: ColumnInput, err_name: String) -> Result<Series, PyErr> {
     parse_col(df, n_col)
     .map_err(|e| match e {
         DataFrameParseError::ValueError(name, cols) => {
             PyValueError::new_err(format!(
-                "The sd_col column named '{}', not found in the provided dataframe. Available columns: {:?}",
-                name, cols,
+                "The {} column named '{}', not found in the provided dataframe. Available columns: {:?}",
+                err_name, name, cols,
             ))
         }
         DataFrameParseError::TypeError(name) => {
             PyTypeError::new_err(format!(
-                "The sd_col column '{}' could not be interpreted as a Series",
-                name,
+                "The {} column '{}' could not be interpreted as a Series",
+                err_name, name,
             ))
         }
         DataFrameParseError::IndexError(ind, total) => {
             PyIndexError::new_err(format!(
-                "The sd_col column_index '{}' is out of bounds for the provided dataframe, which has {} columns",
-                ind, total,
+                "The {} column_index '{}' is out of bounds for the provided dataframe, which has {} columns",
+                err_name, ind, total,
             ))
         }
         DataFrameParseError::TypeIndexError(ind) => {
             PyTypeError::new_err(format!(
-                "The sd_col column at index {} could not be interpreted as a Series",
-                ind,
+                "The {} column at index {} could not be interpreted as a Series",
+                err_name, ind,
             ))
         }
     })
@@ -162,23 +102,24 @@ pub fn debit_map_pl(
         ).unwrap();
     };
 
-    let xs = parse_x_col(&df, x_col)?;
+    let xs = parse_col_errors(&df, x_col, "x_col".to_string())?;
 
     if xs.is_empty() {
         return Err(PyTypeError::new_err("The x_col column is empty."));
     }
 
-    let sds = parse_sd_col(&df, sd_col)?;
+    let sds = parse_col_errors(&df, sd_col, "sd_col".to_string())?;
 
     if sds.is_empty() {
         return Err(PyTypeError::new_err("The sd_col column is empty"));
     }
 
-    let ns = parse_n_col(&df, n_col)?;
+    let ns = parse_col_errors(&df, n_col, "n_col".to_string())?;
 
     if ns.is_empty() {
         return Err(PyTypeError::new_err("The n_col column is empty."));
     }
+
 
     let xs_result = match xs.dtype() {
         DataType::String => Ok(
