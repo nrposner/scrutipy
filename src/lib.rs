@@ -14,5 +14,6 @@ pub mod debit;
 pub mod debit_map;
 pub mod debit_map_df;
 pub mod closure;
+pub mod rivets;
 use utils::*;
 
