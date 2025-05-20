@@ -20,7 +20,6 @@ pub enum DataFrameParseError {
     TypeIndexError(usize),
     #[error("the column index '{0}' is out of bounds for the provided dataframe, which has {1} columns")]
     IndexError(usize, usize),
-
 }
 
 fn parse_col(df: &DataFrame, col: ColumnInput) -> Result<Series, DataFrameParseError>{
@@ -70,7 +69,6 @@ fn parse_col_errors(df: &DataFrame, n_col: ColumnInput, err_name: String) -> Res
         }
     })
 }
-
 
 #[allow(clippy::too_many_arguments)]
 #[pyfunction(signature = (
