@@ -456,7 +456,7 @@ pub fn rounding_bounds(
     }
 }
 
-fn unround(
+pub fn unround(
     x: &str, 
     rounding: &str,
     threshold: f64
@@ -489,11 +489,11 @@ fn unround(
     ))
 }
 
-struct UnroundReturn {
-    lower: f64, 
-    incl_lower: bool,
-    incl_upper: bool,
-    upper: f64,
+pub struct UnroundReturn {
+    pub lower: f64, 
+    pub incl_lower: bool,
+    pub incl_upper: bool,
+    pub upper: f64,
 }
 
 impl UnroundReturn {
