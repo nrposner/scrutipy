@@ -69,7 +69,7 @@ pub fn grim_map_pl(
             df.get_column_names()
         )))?
             .as_series()
-            .ok_or_else(|| PyTypeError::new_err(format!("The column '{}' could not be interpreted as a Series", name)))?,
+            .ok_or_else(|| PyTypeError::new_err(format!("The column '{name}' could not be interpreted as a Series")))?,
 
         ColumnInput::Index(ind) | ColumnInput::Default(ind) => df.get_columns().get(ind).ok_or_else(|| PyIndexError::new_err(format!(
             "The x_col column index '{}' is out of bounds for the provided dataframe, which has {} columns",
@@ -90,7 +90,7 @@ pub fn grim_map_pl(
             df.get_column_names()
         )))?
             .as_series()
-            .ok_or_else(|| PyTypeError::new_err(format!("The column '{}' could not be interpreted as a Series", name)))?,
+            .ok_or_else(|| PyTypeError::new_err(format!("The column '{name}' could not be interpreted as a Series")))?,
 
         ColumnInput::Index(ind) | ColumnInput::Default(ind) => df.get_columns().get(ind).ok_or_else(|| PyIndexError::new_err(format!(
             "The n_col column index '{}' is out of bounds for the provided dataframe, which has {} columns", 
