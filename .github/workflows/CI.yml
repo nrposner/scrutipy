@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: build wheels
+    name: build_wheels
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
