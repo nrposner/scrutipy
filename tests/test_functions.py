@@ -178,6 +178,10 @@ def test_grimmer_2():
     bools = grimmer(["1.03", "52.13", "9.42375"], ["0.41", "2.26", "3.86"], [40, 30, 59], items = [1, 1, 1])
     assert bools == list([False, True, False]) 
 
+def test_grimmer_3():
+    bools = grimmer(["3.92"], ["2.038807"], [50], items = [1])
+    assert bools == list([True]) 
+
 def test_debit_1(): 
     results = debit(["0.36", "0.11", "0.118974"], ["0.11", "0.31", "0.6784"], [20, 40, 100])
     assert results == list([False, True, False])
