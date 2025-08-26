@@ -24,3 +24,6 @@ name = "scrutipy"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tarpaulin_include)']}
+
+[profile.release]
+lto = "fat"
