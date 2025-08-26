@@ -1,14 +1,11 @@
 use core::f64;
-use polars::series::Series;
-use polars::datatypes::AnyValue;
-use polars::{frame::DataFrame, prelude::DataType};
-use pyo3::exceptions::{PyTypeError, PyValueError, PyIndexError};
-use pyo3::types::{PyAnyMethods, PyString};
-use pyo3::{pyfunction, FromPyObject, PyResult, Python};
+use polars::{frame::DataFrame, series::Series};
+use pyo3::{pyfunction, FromPyObject, PyResult, Python,
+    exceptions::{PyIndexError, PyTypeError, PyValueError},  
+    types::{PyAnyMethods, PyString}};
 use pyo3_polars::PyDataFrame;
-use num::NumCast;
-use thiserror::Error;
 use crate::grim::grim_rust;
+use crate::utils::{process_series_to_num, process_series_to_string, InputType};
 
 /// Implements grim_map over the columns of a Python dataframe. 
 ///
@@ -52,7 +49,6 @@ pub fn grim_map_pl(
 ) -> PyResult<(Vec<bool>, Option<Vec<usize>>)>
 {
     let df: DataFrame = pydf.into();
-    //let rounds: Vec<&str> = rounding.iter().map(|s| &**s).collect(); 
 
     let warnings = py.import("warnings").unwrap();
     if (x_col == ColumnInput::Default(0)) & (n_col == ColumnInput::Default(1)) & !silence_default_warning {
@@ -62,14 +58,14 @@ pub fn grim_map_pl(
         ).unwrap();
     };
 
-    let xs: &Series = match x_col {
+    let xs: Series = match x_col {
         ColumnInput::Name(name) => df.column(&name).map_err(|_| PyValueError::new_err(format!(
             "The x_col column named '{}' not found in the provided dataframe. Available columns: {:?}",
             name,
             df.get_column_names()
         )))?
             .as_series()
-            .ok_or_else(|| PyTypeError::new_err(format!("The column '{name}' could not be interpreted as a Series")))?,
+            .ok_or_else(|| PyTypeError::new_err(format!("The column '{name}' could not be interpreted as a Series")))?.clone(),
 
         ColumnInput::Index(ind) | ColumnInput::Default(ind) => df.get_columns().get(ind).ok_or_else(|| PyIndexError::new_err(format!(
             "The x_col column index '{}' is out of bounds for the provided dataframe, which has {} columns",
@@ -77,20 +73,20 @@ pub fn grim_map_pl(
             df.width()
         )))?
             .as_series()
-            .ok_or_else(|| PyTypeError::new_err("Column could not be interpreted as a Series"))?,
+            .ok_or_else(|| PyTypeError::new_err("Column could not be interpreted as a Series"))?.clone(),
     };
     if xs.is_empty() {
         return Err(PyTypeError::new_err("The x_col column is empty."));
     }
 
-    let ns: &Series = match n_col {
+    let ns: Series = match n_col {
         ColumnInput::Name(name) => df.column(&name).map_err(|_| PyValueError::new_err(format!(
             "The n_col column named '{}' not found in the provided dataframe. Available columns: {:?}", 
             name, 
             df.get_column_names()
         )))?
             .as_series()
-            .ok_or_else(|| PyTypeError::new_err(format!("The column '{name}' could not be interpreted as a Series")))?,
+            .ok_or_else(|| PyTypeError::new_err(format!("The column '{name}' could not be interpreted as a Series")))?.clone(),
 
         ColumnInput::Index(ind) | ColumnInput::Default(ind) => df.get_columns().get(ind).ok_or_else(|| PyIndexError::new_err(format!(
             "The n_col column index '{}' is out of bounds for the provided dataframe, which has {} columns", 
@@ -98,86 +94,16 @@ pub fn grim_map_pl(
             df.width()
         )))?
             .as_series()
-            .ok_or_else(|| PyTypeError::new_err("Column could not be interpreted as a Series"))?,
+            .ok_or_else(|| PyTypeError::new_err("Column could not be interpreted as a Series"))?.clone(),
     };
 
     if ns.is_empty() {
         return Err(PyTypeError::new_err("The n_col column is empty."));
     }
 
-    let xs_result = match xs.dtype() {
-        DataType::String => Ok(
-            xs.str().unwrap()
-                .into_iter()
-                .map(|opt| opt.unwrap_or("").to_string())
-                .collect::<Vec<String>>()
-        ),
-        DataType::UInt8
-            | DataType::UInt16
-            | DataType::UInt32
-            | DataType::UInt64
-            | DataType::Int8
-            | DataType::Int16
-            | DataType::Int32
-            | DataType::Int64
-            | DataType::Float32
-            | DataType::Float64 => Ok({
-            if !silence_numeric_warning {
-                warnings.call_method1(
-                    "warn", 
-                    (PyString::new(py, "The column `x_col` is made up of numeric types instead of strings. \n Understand that you may be losing trailing zeros by using a purely numeric type. \n To silence this warning, set `silence_numeric_warning = True`."),),
-                ).unwrap();
-            }
-            xs.iter().map(|x| x.to_string()).collect::<Vec<String>>()}),
-        _ => Err("Input xs column is neither a String nor numeric type"),
-    };
+    let xs_vec = process_series_to_string(py, xs, silence_numeric_warning, InputType::Xs)?;
 
-    // if the data type of xs is neither a string nor a numeric type which we could plausibly
-    // convert into a string (albeit while possibly losing some trailing zeros) we return early
-    // with an error, as there's nowhere for the program to progress from here. 
-    let xs_vec = match xs_result {
-        Ok(xs) => xs,
-        Err(_) => return Err(PyTypeError::new_err("The x_col column is composed of neither strings nor numeric types. Please check the input types and the documentation.")),
-    };
-
-    let ns_result = match ns.dtype() {
-        DataType::String => Ok(coerce_string_to_u32(ns.clone())),
-        DataType::UInt8
-        | DataType::UInt16
-        | DataType::UInt32
-        | DataType::UInt64
-        | DataType::Int8
-        | DataType::Int16
-        | DataType::Int32
-        | DataType::Int64 
-        | DataType::Float32
-        | DataType::Float64 => Ok({
-            ns.iter()
-                .map(|val| match val {
-                    AnyValue::UInt8(n) => coerce_to_u32(n),
-                    AnyValue::UInt16(n) => coerce_to_u32(n),
-                    AnyValue::UInt32(n) => coerce_to_u32(n),
-                    AnyValue::UInt64(n) => coerce_to_u32(n),
-                    AnyValue::Int8(n) => coerce_to_u32(n),
-                    AnyValue::Int16(n) => coerce_to_u32(n),
-                    AnyValue::Int32(n) => coerce_to_u32(n),
-                    AnyValue::Int64(n) => coerce_to_u32(n),
-                    AnyValue::Float32(f) => coerce_to_u32(f),
-                    AnyValue::Float64(f) => coerce_to_u32(f),
-                    _ => Err(NsParsingError::NotAnInteger(val.to_string().parse().unwrap_or(f64::NAN))),
-                })
-                .collect::<Vec<Result<u32, NsParsingError>>>()
-            }),
-            _ => Err(NsParsingError::NotNumeric),
-
-    };
-
-    // if the ns column is made up of neither strings nor any plausible numeric type, we return
-    // early with an error. There is nowhere for the program to progress from here. 
-    let ns_vec = match ns_result {
-        Err(_) => return Err(PyTypeError::new_err("The n_col column is composed of neither strings nor numeric types. Please check the input types and the documentation.")),
-        Ok(vs) => vs,
-    };
+    let ns_vec = process_series_to_num(ns)?;
 
     let xs_temp: Vec<&str> = xs_vec.iter().map(|s| &**s).collect();
 
@@ -224,47 +150,4 @@ pub enum ColumnInput {
     // whether default options have been changed
 }
 
-#[derive(Debug, Error, PartialEq)]
-pub enum NsParsingError {
-    #[error("Value {0} is not numeric")]
-    NotNumeric(String),
-    #[error("Value {0} is not an integer")]
-    NotAnInteger(f64), // float with decimal part
-    #[error("Value {0} is negative or 0")]
-    NotPositive(i128), // negative or zero integer
-    #[error("Value {0} is too large")]
-    TooLarge(u128),    // doesn't fit in u32
-}
-
-pub fn coerce_string_to_u32(s: Series) -> Vec<Result<u32, NsParsingError>>{
-    s.iter()
-    .map(|val| {
-        let s = val.to_string();
-        s.parse::<u32>()
-            .map_err(|_| NsParsingError::NotNumeric(s))
-    })
-    .collect::<Vec<Result<u32, NsParsingError>>>()
-}
-
-pub fn coerce_to_u32<T: Copy + NumCast + std::fmt::Debug>(value: T) -> Result<u32, NsParsingError> {
-    let float: f64 = NumCast::from(value).ok_or(NsParsingError::NotAnInteger(0.0))?;
-
-    if !float.is_finite() {
-        return Err(NsParsingError::NotAnInteger(float));
-    }
-
-    if float.fract() != 0.0 {
-        return Err(NsParsingError::NotAnInteger(float));
-    }
-
-    if float < 0.0 {
-        return Err(NsParsingError::NotPositive(float as i128));
-    }
-
-    if float > u32::MAX as f64 {
-        return Err(NsParsingError::TooLarge(float as u128));
-    }
-
-    Ok(float as u32)
-}
 

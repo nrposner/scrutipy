@@ -1,8 +1,21 @@
+use core::f64;
+use polars::{datatypes::AnyValue, prelude::DataType, series::Series};
+use pyo3::{PyErr, Python, 
+    exceptions::PyTypeError, 
+    types::{PyAnyMethods, PyString}};
+use thiserror::Error;
+use num::NumCast;
+
 use crate::rounding::*;
 use crate::sd_binary::*;
 use regex::Regex;
-// 124-125, 127-128, 130-132, 134-138
+
 const FUZZ_VALUE: f64 = 1e-12;
+
+pub enum InputType {
+    Xs,
+    Sds,
+}
 
 /// Fuzzes the value of a float by 1e-12
 ///
@@ -35,8 +48,6 @@ pub fn decimal_places_scalar(x: Option<&str>, sep: &str) -> Option<i32> {
 
     caps.get(1).map(|c| c.as_str().len() as i32)
 }
-
-use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum ReconstructSdError {
@@ -174,3 +185,123 @@ pub fn check_rounding_singular(
     }
 }
 
+///  TODO
+pub fn process_series_to_string(
+    py: Python, 
+    series: Series, 
+    silence_numeric_warning: bool, 
+    input_type: InputType
+) -> Result<Vec<String>, PyErr> {
+    let warnings = py.import("warnings").unwrap();
+
+    let col_name = match input_type {
+        InputType::Xs => "x_col",
+        InputType::Sds => "sd_col",
+    };
+
+    let series_result = match series.dtype() {
+        DataType::String => Ok(
+            series.str().unwrap()
+                .into_iter()
+                .map(|opt| opt.unwrap_or("").to_string())
+                .collect::<Vec<String>>()
+        ),
+        dt if dt.is_primitive_numeric() => { // covers all UInt, Int, and Float sizes, as well as
+            // DataType::Unknown(UnknownKind::Int(_)) and DataType::Unknown(UnknownKind::Float)
+            // these types should only come up when dealing directly with the Arrow FFI, so we
+            // don't handle them differently here
+            if !silence_numeric_warning {
+                warnings
+                    .call_method1(
+                        "warn",
+                        (PyString::new(
+                            py,
+                            format!("The column {col_name} is made up of numeric types instead of strings. You may be losing trailing zeros by using a purely numeric type. To silence this warning, set `silence_numeric_warning = True`.").as_str(),
+                        ),),
+                    )
+                    .unwrap();
+            }
+            Ok(series.iter().map(|x| x.to_string()).collect::<Vec<String>>())
+        },
+        _ => Err(format!("Input column `{col_name}` is neither a String nor numeric type")),
+
+    };
+
+    // if the data type of series is neither a string nor a numeric type which we could plausibly
+    // convert into a string (albeit while possibly losing some trailing zeros) we return early
+    // with an error, as there's nowhere for the program to progress from here. 
+    let series_vec = match series_result {
+        Ok(series) => series,
+        Err(_) => return Err(PyTypeError::new_err(format!("The column `{col_name}` is composed of neither strings nor numeric types. Please check the input types and the documentation."))),
+    };
+
+    Ok(series_vec)
+}
+
+/// TODO
+pub fn process_series_to_num(ns: Series) -> Result<Vec<Result<u32, NsParsingError>>, PyErr> {
+    let ns_result = match ns.dtype() {
+        DataType::String => Ok(coerce_string_to_u32(ns.clone())),
+        dt if dt.is_primitive_numeric() => Ok({
+            ns.iter()
+                .map(|val| match val {
+                    AnyValue::UInt8(n) => coerce_to_u32(n),
+                    AnyValue::UInt16(n) => coerce_to_u32(n),
+                    AnyValue::UInt32(n) => coerce_to_u32(n),
+                    AnyValue::UInt64(n) => coerce_to_u32(n),
+                    AnyValue::Int8(n) => coerce_to_u32(n),
+                    AnyValue::Int16(n) => coerce_to_u32(n),
+                    AnyValue::Int32(n) => coerce_to_u32(n),
+                    AnyValue::Int64(n) => coerce_to_u32(n),
+                    AnyValue::Float32(f) => coerce_to_u32(f),
+                    AnyValue::Float64(f) => coerce_to_u32(f),
+                    _ => Err(NsParsingError::NotAnInteger(val.to_string().parse().unwrap_or(f64::NAN))),
+                })
+                .collect::<Vec<Result<u32, NsParsingError>>>()
+        }),
+        _ => Err(NsParsingError::NotNumeric),
+    };
+
+    // if the ns column is made up of neither strings nor any plausible numeric type, we return
+    // early with an error. There is nowhere for the program to progress from here. 
+    let ns_vec = match ns_result {
+        Err(_) => return Err(PyTypeError::new_err("The n_col column is composed of neither strings nor numeric types. Please check the input types and the documentation.")),
+        Ok(vs) => vs,
+    };
+
+    Ok(ns_vec)
+}
+
+
+#[derive(Debug, Error, PartialEq)]
+pub enum NsParsingError {
+    #[error("Value {0} is not numeric")]
+    NotNumeric(String),
+    #[error("Value {0} is not an integer")]
+    NotAnInteger(f64), // float with decimal part
+    #[error("Value {0} is negative or 0")]
+    NotPositive(i128), // negative or zero integer
+    #[error("Value {0} is too large")]
+    TooLarge(u128),    // doesn't fit in u32
+}
+
+pub fn coerce_string_to_u32(s: Series) -> Vec<Result<u32, NsParsingError>>{
+    s.iter()
+    .map(|val| {
+        let s = val.to_string();
+        s.parse::<u32>()
+            .map_err(|_| NsParsingError::NotNumeric(s))
+    })
+    .collect::<Vec<Result<u32, NsParsingError>>>()
+}
+
+pub fn coerce_to_u32<T: Copy + NumCast + std::fmt::Debug>(value: T) -> Result<u32, NsParsingError> {
+    let float: f64 = NumCast::from(value).ok_or(NsParsingError::NotAnInteger(0.0))?;
+
+    if !float.is_finite() { return Err(NsParsingError::NotAnInteger(float)); }
+    if float.fract() != 0.0 { return Err(NsParsingError::NotAnInteger(float)); }
+    if float < 0.0 { return Err(NsParsingError::NotPositive(float as i128)); }
+    if float > u32::MAX as f64 { return Err(NsParsingError::TooLarge(float as u128)); }
+
+    Ok(float as u32)
+}

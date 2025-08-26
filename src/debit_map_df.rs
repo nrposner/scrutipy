@@ -1,14 +1,13 @@
 use core::f64;
-use polars::series::Series;
-use polars::datatypes::AnyValue;
-use polars::{frame::DataFrame, prelude::DataType};
-use pyo3::exceptions::{PyTypeError, PyValueError, PyIndexError};
-use pyo3::types::{PyAnyMethods, PyString};
-use pyo3::{pyfunction, PyErr, PyResult, Python};
+use polars::{frame::DataFrame, series::Series};
+use pyo3::{pyfunction, PyErr, PyResult, Python, 
+    exceptions::{PyIndexError, PyTypeError, PyValueError}, 
+    types::{PyAnyMethods, PyString}};
 use pyo3_polars::PyDataFrame;
 use thiserror::Error;
 use crate::debit::debit;
-use crate::grim_map_df::{ColumnInput, coerce_string_to_u32, coerce_to_u32, NsParsingError};
+use crate::grim_map_df::ColumnInput;
+use crate::utils::{InputType, process_series_to_string, process_series_to_num};
 
 #[derive(Debug, Error)]
 pub enum DataFrameParseError {
@@ -66,6 +65,8 @@ fn parse_col_errors(df: &DataFrame, n_col: ColumnInput, err_name: String) -> Res
     })
 }
 
+
+
 #[allow(clippy::too_many_arguments)]
 #[pyfunction(signature = (
     pydf, x_col = ColumnInput::Default(0), sd_col = ColumnInput::Default(1), n_col = ColumnInput::Default(2), show_rec = false, symmetric = false, formula = "mean_n".to_string(), rounding = "up_or_down".to_string(), threshold = 5.0, silence_default_warning = false, silence_numeric_warning = false
@@ -84,8 +85,7 @@ pub fn debit_map_pl(
     threshold: f64, 
     silence_default_warning: bool,
     silence_numeric_warning: bool,
-) -> PyResult<(Vec<bool>, Option<Vec<usize>>)>
-{
+) -> PyResult<(Vec<bool>, Option<Vec<usize>>)> {
     let df: DataFrame = pydf.into();
 
     let warnings = py.import("warnings").unwrap();
@@ -114,107 +114,10 @@ pub fn debit_map_pl(
         return Err(PyTypeError::new_err("The n_col column is empty."));
     }
 
+    let xs_vec = process_series_to_string(py, xs, silence_numeric_warning, InputType::Xs)?;
+    let sds_vec = process_series_to_string(py, sds, silence_numeric_warning, InputType::Sds)?;
+    let ns_vec = process_series_to_num(ns)?;
 
-    let xs_result = match xs.dtype() {
-        DataType::String => Ok(
-            xs.str().unwrap()
-                .into_iter()
-                .map(|opt| opt.unwrap_or("").to_string())
-                .collect::<Vec<String>>()
-        ),
-
-        dt if dt.is_primitive_numeric() => { // covers all UInt, Int, and Float sizes, as well as
-            // DataType::Unknown(UnknownKind::Int(_)) and DataType::Unknown(UnknownKind::Float)
-            // these types should only come up when dealing directly with the Arrow FFI, so we
-            // don't handle them differently here
-            if !silence_numeric_warning {
-                warnings
-                    .call_method1(
-                        "warn",
-                        (PyString::new(
-                            py,
-                            "The column `x_col` is made up of numeric types instead of strings. \
-                             You may be losing trailing zeros by using a purely numeric type. \
-                             To silence this warning, set `silence_numeric_warning = True`.",
-                        ),),
-                    )
-                    .unwrap();
-            }
-            Ok(xs.iter().map(|x| x.to_string()).collect::<Vec<String>>())
-        },
-        _ => Err("Input xs column is neither a String nor numeric type"),
-    };
-
-    // if the data type of xs is neither a string nor a numeric type which we could plausibly
-    // convert into a string (albeit while possibly losing some trailing zeros) we return early
-    // with an error, as there's nowhere for the program to progress from here. 
-    let xs_vec = match xs_result {
-        Ok(xs) => xs,
-        Err(_) => return Err(PyTypeError::new_err("The x_col column is composed of neither strings nor numeric types. Please check the input types and the documentation.")),
-    };
-
-    let sds_result = match sds.dtype() {
-        DataType::String => Ok(
-            sds.str().unwrap()
-                .into_iter()
-                .map(|opt| opt.unwrap_or("").to_string())
-                .collect::<Vec<String>>()
-        ),
-        dt if dt.is_primitive_numeric() => { 
-            if !silence_numeric_warning {
-                warnings
-                    .call_method1(
-                        "warn",
-                        (PyString::new(
-                            py,
-                            "The column `sd_col` is made up of numeric types instead of strings. \
-                             You may be losing trailing zeros by using a purely numeric type. \
-                             To silence this warning, set `silence_numeric_warning = True`.",
-                        ),),
-                    )
-                    .unwrap();
-            }
-            Ok(sds.iter().map(|sd| sd.to_string()).collect::<Vec<String>>())
-        },
-        _ => Err("Input sds column is neither a String nor numeric type"),
-    };
-
-    // if the data type of sds is neither a string nor a numeric type which we could plausibly
-    // convert into a string (albeit while possibly losing some trailing zeros) we return early
-    // with an error, as there's nowhere for the program to progress from here. 
-    let sds_vec = match sds_result {
-        Ok(sds) => sds,
-        Err(_) => return Err(PyTypeError::new_err("The sd_col column is composed of neither strings nor numeric types. Please check the input types and the documentation.")),
-    };
-
-    let ns_result = match ns.dtype() {
-        DataType::String => Ok(coerce_string_to_u32(ns.clone())),
-        dt if dt.is_primitive_numeric() => Ok({
-            ns.iter()
-                .map(|val| match val {
-                    AnyValue::UInt8(n) => coerce_to_u32(n),
-                    AnyValue::UInt16(n) => coerce_to_u32(n),
-                    AnyValue::UInt32(n) => coerce_to_u32(n),
-                    AnyValue::UInt64(n) => coerce_to_u32(n),
-                    AnyValue::Int8(n) => coerce_to_u32(n),
-                    AnyValue::Int16(n) => coerce_to_u32(n),
-                    AnyValue::Int32(n) => coerce_to_u32(n),
-                    AnyValue::Int64(n) => coerce_to_u32(n),
-                    AnyValue::Float32(f) => coerce_to_u32(f),
-                    AnyValue::Float64(f) => coerce_to_u32(f),
-                    _ => Err(NsParsingError::NotAnInteger(val.to_string().parse().unwrap_or(f64::NAN))),
-                })
-                .collect::<Vec<Result<u32, NsParsingError>>>()
-        }),
-        _ => Err(NsParsingError::NotNumeric),
-    };
-
-    // if the ns column is made up of neither strings nor any plausible numeric type, we return
-    // early with an error. There is nowhere for the program to progress from here. 
-    let ns_vec = match ns_result {
-        Err(_) => return Err(PyTypeError::new_err("The n_col column is composed of neither strings nor numeric types. Please check the input types and the documentation.")),
-        Ok(vs) => vs,
-    };
 
     let xs_temp: Vec<&str> = xs_vec.iter().map(|s| &**s).collect();
 
@@ -228,7 +131,6 @@ pub fn debit_map_pl(
             ns.push(*u);
             xs.push(x.to_string());
             sds.push(sds_result.to_string())
-            //sds.push(sds_result.parse::<f64>()?);
         } else {
             err_inds.push(i);
         }
