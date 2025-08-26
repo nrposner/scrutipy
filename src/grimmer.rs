@@ -15,7 +15,7 @@ const EPS: f64 = f64::EPSILON;
 /// Determines whether a standard deviation is possible from the listed mean and sample size
 ///
 /// Implements L. Jung's adaptation of A. Allard's A-GRIMMER algorithm for testing the possibility
-/// of standard deviations. (https://aurelienallard.netlify.app/post/anaytic-grimmer-possibility-standard-deviations/).
+/// of standard deviations. (<https://aurelienallard.netlify.app/post/anaytic-grimmer-possibility-standard-deviations/>).
 ///
 /// # Arguments
 ///     x: the sample mean
@@ -85,7 +85,7 @@ pub fn grimmer_scalar(
 
     if !pass_grim {
         if show_rec {
-            println!("{} is GRIM inconsistent", x)
+            println!("{x} is GRIM inconsistent")
         };
         return false;
     };

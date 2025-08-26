@@ -45,26 +45,22 @@ fn parse_col_errors(df: &DataFrame, n_col: ColumnInput, err_name: String) -> Res
     .map_err(|e| match e {
         DataFrameParseError::ValueError(name, cols) => {
             PyValueError::new_err(format!(
-                "The {} column named '{}', not found in the provided dataframe. Available columns: {:?}",
-                err_name, name, cols,
+                "The {err_name} column named '{name}', not found in the provided dataframe. Available columns: {cols:?}",
             ))
         }
         DataFrameParseError::TypeError(name) => {
             PyTypeError::new_err(format!(
-                "The {} column '{}' could not be interpreted as a Series",
-                err_name, name,
+                "The {err_name} column '{name}' could not be interpreted as a Series",
             ))
         }
         DataFrameParseError::IndexError(ind, total) => {
             PyIndexError::new_err(format!(
-                "The {} column_index '{}' is out of bounds for the provided dataframe, which has {} columns",
-                err_name, ind, total,
+                "The {err_name} column_index '{ind}' is out of bounds for the provided dataframe, which has {total} columns",
             ))
         }
         DataFrameParseError::TypeIndexError(ind) => {
             PyTypeError::new_err(format!(
-                "The {} column at index {} could not be interpreted as a Series",
-                err_name, ind,
+                "The {err_name} column at index {ind} could not be interpreted as a Series",
             ))
         }
     })

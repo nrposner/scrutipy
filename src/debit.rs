@@ -16,8 +16,7 @@ impl From<DebitError> for PyErr {
         match err {
             DebitError::LengthError(xs_len, sds_len, ns_len) => {
                 PyValueError::new_err(format!(
-                    "The lengths of xs, sds, and ns are not equal: xs: {}, sds: {}, ns: {}",
-                    xs_len, sds_len, ns_len
+                    "The lengths of xs, sds, and ns are not equal: xs: {xs_len}, sds: {sds_len}, ns: {ns_len}",
                 ))
             }
         }

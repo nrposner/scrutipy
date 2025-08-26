@@ -33,7 +33,6 @@ use pyo3::pyfunction;
 ///
 /// Returns:
 ///     List[List[int]]: A list of lists, where each inner list represents a valid combination of integer values that meet the specified criteria.
-///
 /// Usage Example:
 ///     >>> from closure_core import closure
 ///     >>> combinations = closure(3.5, 1.2, 50, 0, 7, 0.05, 0.005)

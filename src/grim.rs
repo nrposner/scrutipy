@@ -28,7 +28,7 @@ pub fn grim_scalar(
 ) -> bool {
     let x: String = match x {
         GRIMInput::Str(s) => s,
-        GRIMInput::Num(n) => format!("{}", n),
+        GRIMInput::Num(n) => format!("{n}"),
     };
     // accounting for the possibility that we might receive either a String or numeric type,
     // turning the numeric possibility into a String, which we later turn into a &str to
@@ -55,10 +55,12 @@ pub fn grim_scalar(
     }
 }
 
+
 pub enum GrimReturn {
     Bool(bool),
     List(bool, f64, Vec<f64>, Vec<f64>, f64, f64, f64, f64),
 }
+
 
 // vector wrapper for grim_scalar_rust
 pub fn grim_rust(
