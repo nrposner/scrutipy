@@ -86,6 +86,41 @@ len(results)
 # indicates there are 7980 possible datasets with these characteristics.
 ```
 
+calculate_snspn(): Calculates all possible confusion matries which could be produced from a sample size, and compares the calculated sensitivity and specificity to the input values. It returns a list of dictionaries containing the records for each possibility, as well as a total error and whether the total error is less than a certain tolerance. 
+The dictionaries are ordered from least to greatest total error. For larger sample sizes, it is recommended to use a top_n argument to limit the number of returned values. The return can be trivially turned into a pandas or polars dataframe as seen below.
+This is based on an application by Rod Whitely.
+```
+import pandas as pd
+import scrutipy as s
+vals = s.calculate_snspn(0.8, 0.70588, 20, top_n=5)
+df = pd.DataFrame(vals)
+df
+   TP  TN  FP  FN  Calculated_Sensitivity  Calculated_Specificity  Sensitivity_Error  Specificity_Error  Total_Error  Exact_Match
+0   8   7   3   2                0.800000                0.700000           0.000000           0.005880     0.005880        False
+1   4  11   4   1                0.800000                0.733333           0.000000           0.027453     0.027453        False
+2  10   5   2   3                0.769231                0.714286           0.030769           0.008406     0.039175        False
+3   4  10   5   1                0.800000                0.666667           0.000000           0.039213     0.039213        False
+4   5  10   4   1                0.833333                0.714286           0.033333           0.008406     0.041739        False
+```
+
+calculate_ppvnpv(): Calculates all possible confusion matries which could be produced from a sample size, and compares the calculated PPV and NPV to the input values. It returns a list of dictionaries containing the records for each possibility, as well as a total error and whether the total error is less than a certain tolerance. 
+The dictionaries are ordered from least to greatest total error. For larger sample sizes, it is recommended to use a top_n argument to limit the number of returned values. The return can be trivially turned into a pandas or polars dataframe as seen below.
+This is based on an application by Rod Whitely.
+
+```
+>>> import pandas as pd
+>>> import scrutipy as s
+>>> vals = s.calculate_ppvnpv(0.8, 0.70588, 20, top_n=5)
+>>> df = pd.DataFrame(vals)
+>>> df
+   TP  TN  FP  FN  Calculated_PPV  Calculated_NPV  PPV_Error  NPV_Error  Total_Error  Exact_Match
+0   8   7   2   3        0.800000        0.700000   0.000000   0.005880     0.005880        False
+1   4  11   1   4        0.800000        0.733333   0.000000   0.027453     0.027453        False
+2  10   5   3   2        0.769231        0.714286   0.030769   0.008406     0.039175        False
+3   4  10   1   5        0.800000        0.666667   0.000000   0.039213     0.039213        False
+4   5  10   1   4        0.833333        0.714286   0.033333   0.008406     0.041739        False
+```
+
 # Roadmap
 
 Expand documentation
@@ -110,3 +145,5 @@ James Heathers
 Jordan Anaya
 
 Aurelien Allard
+
+Rod Whitely
