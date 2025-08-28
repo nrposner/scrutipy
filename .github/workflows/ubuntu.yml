@@ -30,7 +30,7 @@ jobs:
         with:
           command: build
           args: --release --strip --out dist
-          manylinux: auto
+          manylinux: manylinux_2_28
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
