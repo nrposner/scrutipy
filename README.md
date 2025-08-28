@@ -103,9 +103,21 @@ df
 4   5  10   4   1                0.833333                0.714286           0.033333           0.008406     0.041739        False
 ```
 
-calculate_ppvnpv(): Calculates all possible confusion matries which could be produced from a sample size, and compares the calculated PPV and NPV to the input values. It returns a list of dictionaries containing the records for each possibility, as well as a total error and whether the total error is less than a certain tolerance. 
-The dictionaries are ordered from least to greatest total error. For larger sample sizes, it is recommended to use a top_n argument to limit the number of returned values. The return can be trivially turned into a pandas or polars dataframe as seen below.
-This is based on an application by Rod Whitely.
+It is also recommended to use the n_positive argument (previously called n_pathology), which limits the search range only to those sets where the number of true positives and false negatives equal the input value, if this information is available.
+
+```
+vals = s.calculate_snspn(0.8, 0.70588, 20, n_positive=10, top_n=5)
+df = pd.DataFrame(vals)
+df
+   TP  TN  FP  FN  Calculated_Sensitivity  Calculated_Specificity  Sensitivity_Error  Specificity_Error  Total_Error  Exact_Match
+0   8   7   3   2                     0.8                     0.7                0.0            0.00588      0.00588        False
+1   8   8   2   2                     0.8                     0.8                0.0            0.09412      0.09412        False
+2   8   6   4   2                     0.8                     0.6                0.0            0.10588      0.10588        False
+3   9   7   3   1                     0.9                     0.7                0.1            0.00588      0.10588        False
+4   7   7   3   3                     0.7                     0.7                0.1            0.00588      0.10588        False
+```
+
+calculate_ppvnpv(): Calculates all possible confusion matries which could be produced from a sample size, and compares the calculated PPV and NPV to the input values. See calculate_snspn() above for some other details of recommended use for this family of functions.
 
 ```
 >>> import pandas as pd
@@ -119,6 +131,35 @@ This is based on an application by Rod Whitely.
 2  10   5   3   2        0.769231        0.714286   0.030769   0.008406     0.039175        False
 3   4  10   1   5        0.800000        0.666667   0.000000   0.039213     0.039213        False
 4   5  10   1   4        0.833333        0.714286   0.033333   0.008406     0.041739        False
+```
+
+
+
+calculate_likelihoodratios(): Calculates all possible confusion matries which could be produced from a sample size, and compares the calculated likelihood ratios to the input values. See calculate_snspn() above for some other details of recommended use for this family of functions.
+
+```
+l = s.calculate_likelihoodratios(0.234, 0.687, 56, top_n = 5)
+df = pd.DataFrame(l)
+df
+   TP  TN  FP  FN  Calculated_PLR  Calculated_NLR  PLR_Error  NLR_Error  Total_Error  Exact_Match
+0  20   9  22   5        0.232258        0.688889   0.001742   0.001889     0.003631        False
+1  12  12  29   3        0.234146        0.683333   0.000146   0.003667     0.003813        False
+2   4  15  36   1        0.235294        0.680000   0.001294   0.007000     0.008294        False
+3  31   5  12   8        0.233786        0.697436   0.000214   0.010436     0.010650        False
+4  23   8  19   6        0.234994        0.698276   0.000994   0.011276     0.012269        False
+
+```
+
+calculate_metrics_from_counts(): Calculates sensitivity, specificity, PPV, NPV, Positive Likelihood Ratio and Negative Likelihood Ratio from input counts of true/false positives/negatives.
+
+```
+import pandas as pd
+import scrutipy as s
+l = s.calculate_metrics_from_counts(34, 88, 94, 234)
+df = pd.DataFrame([l])
+   Sensitivity  Specificity       PPV       NPV       +LR       -LR
+0     0.126866     0.483516  0.265625  0.273292  0.245634  1.805801
+
 ```
 
 # Roadmap
