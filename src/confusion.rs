@@ -354,7 +354,7 @@ pub fn calculate_metrics_from_counts(
     dict.set_item("Specificity", specificity)?;
     dict.set_item("PPV", ppv)?;
     dict.set_item("NPV", npv)?;
-    dict.set_item("_LR", plr)?;
+    dict.set_item("+LR", plr)?;
     dict.set_item("-LR", nlr)?;
 
     Ok(dict.into())
