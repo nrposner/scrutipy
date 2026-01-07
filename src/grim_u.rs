@@ -4,8 +4,6 @@ use rand::rngs::SmallRng;
 use rand::seq::index::sample;
 use rayon::prelude::*;
 
-
-
 #[pyfunction(signature = (n1, n2, u_target, max_iter=100000))]
 pub fn simrank(
     n1: usize, 

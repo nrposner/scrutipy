@@ -166,10 +166,10 @@ simrank() and simrank_parallel(): outputs sampled rank groups and U-values. Impl
 
 ```python
 import scrutipy as s
-res = simrank(10, 12, 7)
-print("Group 1 ranks: ", res.0)
-print("Group 2 ranks: ", res.1)
-print("U-value: ", res.2)
+res = s.simrank(10, 12, 7)
+print("Group 1 ranks: ", res[0])
+print("Group 2 ranks: ", res[1])
+print("U-value: ", res[2])
 ```
 
 # Roadmap
