@@ -6,7 +6,7 @@ Currently in early development. Presently available functions include:
 
 grim_scalar(): Implements the GRIM test on single observations. 
 
-```
+```python
 from scrutipy import grim_scalar
 
 grim_scalar("5.19", 40)
@@ -15,7 +15,7 @@ grim_scalar("5.19", 40)
 
 grim_map() Implements the GRIM test on Pandas dataframes. Use the variant grim_map_pl() for Polars dataframes. Both functions require Polars, which can be enabled using `pip install scrutipy[polars]` or `pip install polars`.
 
-```
+```python
 import pandas as pd
 from scrutipy import grim_map 
 
@@ -33,7 +33,7 @@ print(errors)
 
 grimmer() Implements the GRIMMER test on 1d iterables.
 
-```
+```python
 from scrutipy import grimmer
 results = grimmer(["1.03", "52.13", "9.42375"], ["0.41", "2.26", "3.86"], [40, 30, 59], items = [1, 1, 1])
 
@@ -44,7 +44,7 @@ print(results)
 
 debit() implements the DEBIT test on 1d iterables (lists and arrays). 
 
-```
+```python
 from scrutipy import debit
 
 results = debit(["0.36", "0.11", "0.118974"], ["0.11", "0.31", "0.6784"], [20, 40, 100])
@@ -54,7 +54,7 @@ print(results)
 
 debit_map() implements the DEBIT test on Pandas dataframes. Use the variant debit_map_pl() for Polars dataframes. Both functions require Polars, which can be enabled using `pip install scrutipy[polars]` or `pip install polars`.
 
-```
+```python
 from scrutipy import debit_map 
 
 df = pd.read_csv("data/debit_data.csv")
@@ -73,7 +73,7 @@ closure(): Implements the CLOSURE algorithm for recovering integer data from sum
 This function replaces the CORVIDS algorithm, which relied on more advanced mathematics packages, with a simpler and faster algorithm. 
 Note that even with CLOSURE's performance gains, the necessary time and compute to reconstruct data increases rapidly as range and count increase. 
 
-```
+```python
 # reconstruct possible datasets with a mean of 3.5, sd of 0.57, n = 100, 
 # and inclusive range from 0 to 7. 
 # We set the rounding error for the mean to 0.05 and for sd to 0.005
@@ -89,7 +89,7 @@ len(results)
 calculate_snspn(): Calculates all possible confusion matries which could be produced from a sample size, and compares the calculated sensitivity and specificity to the input values. It returns a list of dictionaries containing the records for each possibility, as well as a total error and whether the total error is less than a certain tolerance. 
 The dictionaries are ordered from least to greatest total error. For larger sample sizes, it is recommended to use a top_n argument to limit the number of returned values. The return can be trivially turned into a pandas or polars dataframe as seen below.
 This is based on an application by Rod Whitely.
-```
+```python
 import pandas as pd
 import scrutipy as s
 vals = s.calculate_snspn(0.8, 0.70588, 20, top_n=5)
@@ -105,7 +105,7 @@ df
 
 It is also recommended to use the n_positive argument (previously called n_pathology), which limits the search range only to those sets where the number of true positives and false negatives equal the input value, if this information is available.
 
-```
+```python
 vals = s.calculate_snspn(0.8, 0.70588, 20, n_positive=10, top_n=5)
 df = pd.DataFrame(vals)
 df
@@ -119,7 +119,7 @@ df
 
 calculate_ppvnpv(): Calculates all possible confusion matries which could be produced from a sample size, and compares the calculated PPV and NPV to the input values. See calculate_snspn() above for some other details of recommended use for this family of functions.
 
-```
+```python
 >>> import pandas as pd
 >>> import scrutipy as s
 >>> vals = s.calculate_ppvnpv(0.8, 0.70588, 20, top_n=5)
@@ -137,7 +137,7 @@ calculate_ppvnpv(): Calculates all possible confusion matries which could be pro
 
 calculate_likelihoodratios(): Calculates all possible confusion matries which could be produced from a sample size, and compares the calculated likelihood ratios to the input values. See calculate_snspn() above for some other details of recommended use for this family of functions.
 
-```
+```python
 l = s.calculate_likelihoodratios(0.234, 0.687, 56, top_n = 5)
 df = pd.DataFrame(l)
 df
@@ -152,7 +152,7 @@ df
 
 calculate_metrics_from_counts(): Calculates sensitivity, specificity, PPV, NPV, Positive Likelihood Ratio and Negative Likelihood Ratio from input counts of true/false positives/negatives.
 
-```
+```python
 import pandas as pd
 import scrutipy as s
 l = s.calculate_metrics_from_counts(34, 88, 94, 234)
@@ -160,6 +160,16 @@ df = pd.DataFrame([l])
    Sensitivity  Specificity       PPV       NPV       +LR       -LR
 0     0.126866     0.483516  0.265625  0.273292  0.245634  1.805801
 
+```
+
+simrank() and simrank_parallel(): outputs sampled rank groups and U-values. Implementation by [David Robert Grimes](https://github.com/drg85/GRIMU), cf [*Heathers & Grimes 2026*](https://medicalevidenceproject.org/grim-u-observation-establish-impossible-p-values-ranked-tests/)
+
+```python
+import scrutipy as s
+res = simrank(10, 12, 7)
+print("Group 1 ranks: ", res.0)
+print("Group 2 ranks: ", res.1)
+print("U-value: ", res.2)
 ```
 
 # Roadmap
@@ -188,3 +198,5 @@ Jordan Anaya
 Aurelien Allard
 
 Rod Whitely
+
+David Robert Grimes
