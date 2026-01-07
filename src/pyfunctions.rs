@@ -10,6 +10,7 @@ use crate::debit::debit;
 use crate::debit_map_df::debit_map_pl;
 use crate::debit_map::debit_map;
 use crate::confusion::{calculate_snspn, calculate_ppvnpv, calculate_likelihoodratios, calculate_metrics_from_counts};
+use crate::grim_u::{simrank, simrank_parallel};
 
 /// Scrutipy: A library for scientific error checking and fraud detection.
 ///
@@ -32,5 +33,7 @@ fn scrutipy(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(calculate_ppvnpv, module)?)?;
     module.add_function(wrap_pyfunction!(calculate_likelihoodratios, module)?)?;
     module.add_function(wrap_pyfunction!(calculate_metrics_from_counts, module)?)?;
+    module.add_function(wrap_pyfunction!(simrank, module)?)?;
+    module.add_function(wrap_pyfunction!(simrank_parallel, module)?)?;
     Ok(())
 }
