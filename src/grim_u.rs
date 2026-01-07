@@ -1,4 +1,4 @@
-use rand::SeedableRng;
+use rand::{SeedableRng, rng};
 use pyo3::prelude::*;
 use rand::rngs::SmallRng;
 use rand::seq::index::sample;
@@ -13,19 +13,29 @@ pub fn simrank(
     u_target: f64,
     max_iter: usize
 ) -> Option<(Vec<usize>, Vec<usize>, f64)>  {
+    let mut rng = SmallRng::from_os_rng();
 
     let total_ranks = 1..=(n1+n2);
     let r1_target = u_target + (n1 as f64) * (n1 as f64 + 1.0) / 2.0;
 
     for _ in 0..max_iter {
         // draw without replacement
-        let mut group1_ranks = sample(&mut SmallRng::from_os_rng(), n1+n2, n1).into_vec();
+        let mut group1_ranks: Vec<usize> = sample(&mut rng, n1+n2, n1).into_iter()
+            .map(|i| i+1).collect();
 
         if group1_ranks.iter().sum::<usize>() as f64 == r1_target {
-            group1_ranks.sort();
-            let group2_ranks: Vec<usize> = total_ranks.filter(|i| !group1_ranks.contains(i)).collect();
-            // find all those elements in total_ranks that do not appear in group1_ranks
+            group1_ranks.sort_unstable();
 
+            let mut group2_ranks = Vec::with_capacity(n2);
+            let mut g1_iter = group1_ranks.iter().peekable();
+            for i in total_ranks {
+                if g1_iter.peek() == Some(&&i) {
+                    g1_iter.next();
+                } else {
+                    group2_ranks.push(i);
+                }
+            }
+            // // find all those elements in total_ranks that do not appear in group1_ranks
             return Some(
             (group1_ranks, group2_ranks, u_target)
             )
@@ -41,16 +51,28 @@ pub fn simrank_parallel(
     u_target: f64,
     max_iter: usize
 ) -> Option<(Vec<usize>, Vec<usize>, f64)>  {
+    // let mut rng = SmallRng::from_os_rng();
 
     let r1_target = u_target + (n1 as f64) * (n1 as f64 + 1.0) / 2.0;
 
     (0..max_iter).into_par_iter().filter_map(|_| { 
         // draw without replacement
-        let mut group1_ranks = sample(&mut SmallRng::from_os_rng(), n1+n2, n1).into_vec();
+        let mut rng = rng();
+        let mut group1_ranks: Vec<usize> = sample(&mut rng, n1+n2, n1).into_iter()
+            .map(|i| i+1).collect();
 
         if group1_ranks.iter().sum::<usize>() as f64 == r1_target {
-            group1_ranks.sort();
-            let group2_ranks: Vec<usize> = (1..=(n1+n2)).filter(|i| !group1_ranks.contains(i)).collect();
+            group1_ranks.sort_unstable();
+
+            let mut group2_ranks = Vec::with_capacity(n2);
+            let mut g1_iter = group1_ranks.iter().peekable();
+            for i in 1..=n1+n2 {
+                if g1_iter.peek() == Some(&&i) {
+                    g1_iter.next();
+                } else {
+                    group2_ranks.push(i);
+                }
+            }
             // find all those elements in total_ranks that do not appear in group1_ranks
             Some((group1_ranks, group2_ranks, u_target))
         } else {
