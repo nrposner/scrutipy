@@ -14,14 +14,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest]
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5 
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -43,43 +43,23 @@ jobs:
 
   publish_wheels:
     name: Publish wheels to PyPI
-    # This job depends on the successful completion of all build jobs
     needs: [build_wheels]
-    # For safety, only publish when a tag is pushed, not on manual runs
-    # if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest # just need a single runner for this one
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python for publishing
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13" # use most recent python version
-
-      - name: Install maturin for upload
-        run: pip install maturin
-
       - name: Download all wheels from build jobs
         uses: actions/download-artifact@v4
         with:
           pattern: wheels-*
-          path: dist/ 
+          path: dist/
           merge-multiple: true
 
-      - name: Check if secret is present
-        shell: bash
-        run: |
-          if [ -z "${{ secrets.PYPI_API_TOKEN }}" ]; then
-            echo "❌ PYPI_API_TOKEN is NOT set"
-            exit 1
-          else
-            echo "✅ PYPI_API_TOKEN is present"
-          fi
-
-      - name: Build the source distribution (sdist)
-        run: maturin sdist --out dist
+      - name: List distribution files
+        run: ls -la dist/
 
       - name: Publish to PyPI
-        run: maturin upload --skip-existing --username __token__ --password ${{ secrets.PYPI_API_TOKEN }} dist/*
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          skip-existing: true
+          verbose: true
