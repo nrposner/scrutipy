@@ -20,9 +20,28 @@ impl SimRank {
     fn new(n1: Vec<usize>, n2: Vec<usize>) -> Self {
         SimRank { n1, n2 }
     }
+    // Since it's straightforward to recompute, no need to waste space storing the u_value with the 
+    // concrete data: just recalculate it when needed
+    fn u_values(&self) -> (f64, f64) {
+        let n1 = self.n1.len() as f64;
+        let n2 = self.n2.len() as f64;
+        let r1 = self.n1.iter().sum::<usize>() as f64;
+        let r2 = self.n2.iter().sum::<usize>() as f64;
+
+        let u_val_1 = (n1 * n2) + (n1*(n1+1.0))/2.0 - r1;
+        let u_val_2 = (n1 * n2) + (n2*(n2+1.0))/2.0 - r2;
+
+        (u_val_1, u_val_2)
+    }
 }
 
-// this should be default implementation
+// current issue: we want to allow the user to input half integers, since it is possible for a
+// u-value to not be a whole number, if there was a tie among the tests. 
+//
+// we also want to check up-front whether the u-value provided is not within the possible range: if
+// so, we should exit immediately with an informative error and pass it up to Python. Otherwise, we
+// could end up spending lots of cycles on useless work.
+
 #[pyfunction(signature = (n1, n2, u_target, length=1, max_iter=100000))]
 pub fn simrank(
     n1: usize, 
