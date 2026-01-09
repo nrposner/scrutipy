@@ -1,16 +1,16 @@
-use crate::grim::grim_scalar;
-use crate::grimmer::grimmer;
-use crate::grim_map_df::grim_map_pl;
 use pyo3::prelude::Bound;
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
+use crate::grim::grim_scalar;
+use crate::grimmer::grimmer;
+use crate::grim_map_df::grim_map_pl;
 use crate::grim_map::grim_map;
 use crate::closure::closure;
 use crate::debit::debit;
 use crate::debit_map_df::debit_map_pl;
 use crate::debit_map::debit_map;
 use crate::confusion::{calculate_snspn, calculate_ppvnpv, calculate_likelihoodratios, calculate_metrics_from_counts};
-use crate::grim_u::{simrank, simrank_single};
+use crate::grim_u::{simrank, simrank_single, simrank_tied, simrank_tied_single, SimRank, SimRankTied};
 
 /// Scrutipy: A library for scientific error checking and fraud detection.
 ///
@@ -35,5 +35,9 @@ fn scrutipy(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(calculate_metrics_from_counts, module)?)?;
     module.add_function(wrap_pyfunction!(simrank, module)?)?;
     module.add_function(wrap_pyfunction!(simrank_single, module)?)?;
+    module.add_class::<SimRank>()?;
+    module.add_class::<SimRankTied>()?;
+    module.add_function(wrap_pyfunction!(simrank_tied, module)?)?;
+    module.add_function(wrap_pyfunction!(simrank_tied_single, module)?)?;
     Ok(())
 }
