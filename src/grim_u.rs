@@ -42,6 +42,36 @@ impl SimRank {
 // so, we should exit immediately with an informative error and pass it up to Python. Otherwise, we
 // could end up spending lots of cycles on useless work.
 
+/// Generates simulated rank tests based on rank counts and U-score.
+///
+/// This function takes integers n1 and n2, decimal U-value u_target (which may be an integer or
+/// half-integer) and output length. It returns an array of SimRank objects containing the sampled
+/// rank groups and the target U-value. Origial implementation by [David Robert Grimes](https://github.com/drg85/GRIMU), cf [*Heathers & Grimes 2026*](https://medicalevidenceproject.org/grim-u-observation-establish-impossible-p-values-ranked-tests/).
+///
+/// # Arguments
+///
+/// * `n1` - The number of tests in group 1.
+/// * `n2` - The number of tests in group 2.
+/// * `u_target` - The target U-value of the rank test. This may be an integer or a half-integer.
+/// * `length` - How many simulated rank tests to generate.
+/// * `max_iter` - The maximum number of samples the function will take before terminating, if it
+/// has not already found `length` valid samples.
+///
+/// # Returns
+///
+/// Returns a `SimRank` containing two vectors of ranks `n1` and `n2` and a u-value, which should
+/// in all cases be the same as the input u_target.
+///
+/// Returns a `PyResult` containing a vector of boolean values. Each boolean indicates whether
+/// the corresponding set of inputs is consistent according to the specified parameters.
+///
+/// # Notes
+///
+/// Being a stochastic process, it is possible that the sampler will fail to find some valid
+/// simrank combinations, even with an extremely high `max_iter`. It is also possible that it will
+/// fail to find up to `length` elements, even if they do exist. Thus, the output vectors are not
+/// guaranteed to be exactly `length` in size, and if their exact dimensions are relevant to any
+/// analysis, that must be checked by the caller.
 #[pyfunction(signature = (n1, n2, u_target, length=1, max_iter=100000))]
 pub fn simrank(
     n1: usize, 
