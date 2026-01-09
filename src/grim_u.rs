@@ -4,6 +4,24 @@ use rayon::prelude::*;
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
+
+#[pyclass]
+#[derive(Clone,Debug)]
+pub struct SimRank {
+    #[pyo3(get)]
+    pub n1: Vec<usize>,
+    #[pyo3(get)]
+    pub n2: Vec<usize>,
+}
+
+#[pymethods]
+impl SimRank {
+    #[new]
+    fn new(n1: Vec<usize>, n2: Vec<usize>) -> Self {
+        SimRank { n1, n2 }
+    }
+}
+
 // this should be default implementation
 #[pyfunction(signature = (n1, n2, u_target, length=1, max_iter=100000))]
 pub fn simrank(
@@ -12,8 +30,9 @@ pub fn simrank(
     u_target: f64,
     length: usize,
     max_iter: usize
-) -> Vec<(Vec<usize>, Vec<usize>, f64)> {
-    let r1_target = (u_target + (n1 as f64) * (n1 as f64 + 1.0) / 2.0).round() as usize;
+) -> Vec<SimRank> {
+// ) -> Vec<(Vec<usize>, Vec<usize>, f64)> {
+    let r1_target = u_target + (n1 as f64) * (n1 as f64 + 1.0) / 2.0;
     let n_total = n1 + n2;
 
     // use a Mutex to collect results across threads
@@ -31,7 +50,7 @@ pub fn simrank(
         let indices = rand::seq::index::sample(&mut rng, n_total, n1);
         let sum_1_based = indices.iter().sum::<usize>() + n1;
 
-        if sum_1_based == r1_target {
+        if sum_1_based as f64 == r1_target {
             // Check again before expensive work
             if count.load(Ordering::Relaxed) < length {
                 let mut group1_ranks = indices.into_vec();
@@ -48,10 +67,15 @@ pub fn simrank(
                     }
                 }
 
+                let sr = SimRank {
+                    n1: group1_ranks,
+                    n2: group2_ranks,
+                };
+
                 let mut res_guard = results.lock().unwrap();
                 // Push and increment
                 if res_guard.len() < length {
-                    res_guard.push((group1_ranks, group2_ranks, u_target));
+                    res_guard.push(sr);
                     count.fetch_add(1, Ordering::SeqCst);
                 }
             }
@@ -68,7 +92,7 @@ pub fn simrank_single(
     n2: usize, 
     u_target: f64, 
     max_iter: usize
-) -> (Vec<usize>, Vec<usize>, f64) {
+) -> SimRank {
     let s = simrank(n1, n2, u_target, 1, max_iter);
     s[0].clone()
 }
