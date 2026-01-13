@@ -8,12 +8,11 @@ on:
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }} for ${{ matrix.python-version }}
-    runs-on: ${{ matrix.os }}
+    name: Build wheels for Python ${{ matrix.python-version }}
+    runs-on: macos-14
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13, macos-14]  # macos-13 = Intel x64, macos-14 = Apple Silicon arm64
         python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
@@ -40,7 +39,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.os }}-${{ matrix.python-version }}
+          name: wheels-macos-${{ matrix.python-version }}
           path: dist
           compression-level: 0
 
