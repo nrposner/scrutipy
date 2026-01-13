@@ -31,6 +31,7 @@ jobs:
         with:
           name: wheels-ubuntu-${{ matrix.python-version }}
           path: dist
+          compression-level: 0
 
   publish_wheels:
     name: Publish wheels to PyPI

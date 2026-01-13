@@ -40,6 +40,7 @@ jobs:
         with:
           name: wheels-${{ matrix.os }}-${{ matrix.python-version }}
           path: dist
+          compression-level: 0
 
   publish_wheels:
     name: Publish wheels to PyPI
