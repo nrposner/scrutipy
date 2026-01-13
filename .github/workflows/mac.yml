@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-14, macos-latest]
+        os: [macos-13, macos-14]  # macos-13 = Intel x64, macos-14 = Apple Silicon arm64
         python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
@@ -33,7 +33,9 @@ jobs:
         with:
           command: build
           args: --release --strip --out dist -i python
-          manylinux: auto
+
+      - name: Verify wheel is valid
+        run: python -m zipfile -t dist/*.whl
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -61,6 +63,16 @@ jobs:
           path: dist/
           merge-multiple: true
 
+      - name: List distribution files
+        run: ls -la dist/
+
+      - name: Verify all wheels are valid
+        run: |
+          for f in dist/*.whl; do
+            echo "Checking $f"
+            python -m zipfile -t "$f"
+          done
+
       - name: Set up Python for sdist
         uses: actions/setup-python@v5
         with:
@@ -71,9 +83,6 @@ jobs:
 
       - name: Build the source distribution (sdist)
         run: maturin sdist --out dist
-
-      - name: List distribution files
-        run: ls -la dist/
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
